@@ -52,6 +52,10 @@ Top strip DEFCON 5 4 3 2 1 (starts at 5). READY button top-right with count. Whe
 - Background music loops from `public/music.m4a`; starts on first click (browser rule). MUSIC ON/OFF button and a volume slider (default 5; real volume = slider / 200, i.e. half of the slider value), saved per device.
 - Copyright: the user wanted the Black Ops 1 lobby theme with the same melody. Declined (same melody = still the composition). Suggested an original track in the same mood. The file now used is a user-supplied recording.
 
+## Match chat log (for training bots)
+- Every match writes `logs/match-<UTC time>.jsonl`, one JSON line per event: `start` (each player's leader name, role, corrupt, bot, lang, code), `msg` (chat id, DEFCON, sender + recipient name/role/bot, `as` = name or role, text), `destroy` (chat id), `end` (DISARMED / FAILED / TIMEOUT / CLOSED / EVERYONE LEFT).
+- Destroyed chats stay in the log. `logs/` is git-ignored (friends' private chats).
+
 ## Open questions
 1. What should happen when everyone is ready at DEFCON 1 (nukes hit / game over)? Currently nothing.
 2. Should the 30 s wiretap timer reset or count inside a DEFCON round?

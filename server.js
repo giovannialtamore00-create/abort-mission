@@ -136,7 +136,25 @@ function threadFor(me, other, as, mode) {
   return t;
 }
 // both sides pressed destroy in time: the chat is gone
-function finishKill(t) { if (t.kill.has(t.a) && t.kill.has(t.b)) room.chats = room.chats.filter((c) => c !== t); }
+function finishKill(t) { if (t.kill.has(t.a) && t.kill.has(t.b)) { room.chats = room.chats.filter((c) => c !== t); matchLog({ ev: 'destroy', chat: t.id }); } }
+// match log for training bots: one JSON line per event in logs/match-<date>.jsonl (start, every chat message, destroy, end)
+let logFile = null;
+function matchLog(e) {
+  if (!logFile) return;
+  try { fs.appendFileSync(logFile, JSON.stringify({ t: new Date().toISOString(), defcon: room.defcon, ...e }) + '\n'); } catch (err) { console.error('match log:', err.message); }
+}
+function startLog() {
+  fs.mkdirSync(path.join(__dirname, 'logs'), { recursive: true });
+  logFile = path.join(__dirname, 'logs', 'match-' + new Date().toISOString().replace(/[:.]/g, '-') + '.jsonl');
+  matchLog({ ev: 'start', players: room.players.map((p) => ({ name: p.name, role: p.role, corrupt: p.corrupt, bot: p.isBot, lang: p.lang || null, code: p.code })) });
+}
+function endLog(result) { matchLog({ ev: 'end', result }); logFile = null; }
+// every chat message goes through here so it is also logged
+function addMsg(t, from, text) {
+  t.msgs.push({ from, text });
+  const to = from === t.a ? t.b : t.a;
+  matchLog({ ev: 'msg', chat: t.id, from: from.name, fromRole: from.role, fromBot: from.isBot, as: sideMode(t, from), to: to.name, toRole: to.role, toBot: to.isBot, text });
+}
 // bots skip about 1 message in 4; otherwise they answer after 2-6 s, or sometimes 8-20 s
 function botReply(t, bot) {
   const human = t.a === bot ? t.b : t.a;
@@ -147,7 +165,7 @@ function botReply(t, bot) {
     const text = botLine('reply', langOf(human));
     if (!text) return;
     t.botAt = Date.now();
-    t.msgs.push({ from: bot, text: humanize(text, bot, langOf(human)) });
+    addMsg(t, bot, humanize(text, bot, langOf(human)));
     broadcast();
   });
 }
@@ -173,7 +191,7 @@ setInterval(() => {
     t = threadFor(bot, human, pick(['name', 'role']), human.role === SURVIVOR ? 'name' : pick(['name', 'role'])); // nobody can address the Survivor by role
   }
   t.botAt = Date.now();
-  t.msgs.push({ from: bot, text: humanize(text, bot, langOf(human)) });
+  addMsg(t, bot, humanize(text, bot, langOf(human)));
   broadcast();
 }, 4000);
 // each side of a chat picks how it shows up (name or role): t.am for side a, t.bm for side b
@@ -190,7 +208,7 @@ function advanceIfReady() {
 // time's up: DEFCON drops; at DEFCON 1 the nukes hit
 setInterval(() => {
   if (room.phase !== 'play' || room.pausedLeft != null || Date.now() < room.defconEnds) return;
-  if (room.defcon > 1) dropDefcon(); else { room.phase = 'ended'; room.result = 'TIMEOUT'; }
+  if (room.defcon > 1) dropDefcon(); else { room.phase = 'ended'; room.result = 'TIMEOUT'; endLog(room.result); }
   broadcast();
 }, 1000);
 
@@ -282,7 +300,7 @@ function onMessage(ws, msg) {
   }
   if (!me) return;
   const isHost = room.host === me;
-  if (msg.type === 'start' && isHost && room.phase === 'lobby') { deal(); broadcast(); }
+  if (msg.type === 'start' && isHost && room.phase === 'lobby') { deal(); startLog(); broadcast(); }
   else if (msg.type === 'pause' && isHost && room.phase === 'play') {
     // host only: freeze or resume the DEFCON timer
     if (room.pausedLeft != null) { room.defconEnds = Date.now() + room.pausedLeft; room.pausedLeft = null; }
@@ -290,6 +308,7 @@ function onMessage(ws, msg) {
     broadcast();
   } else if ((msg.type === 'newgame' || (msg.type === 'close' && room.phase === 'play')) && isHost) {
     // newgame after the end, or the host closes a running match: back to the lobby (closing also drops players who left)
+    if (room.phase === 'play') endLog('CLOSED');
     room.players = room.players.filter((p) => !p.isBot && (msg.type === 'newgame' || p.ws));
     room.players.forEach((p) => { delete p.role; p.name = p.joinName || p.name; });
     room.phase = 'lobby'; room.result = null; room.chats = []; room.tap = null; room.embassy = null; room.defcon = 5; room.ready = new Set(); broadcast();
@@ -299,7 +318,7 @@ function onMessage(ws, msg) {
     const a = d.slice(0, 4), b = d.slice(4);
     const ok = /^\d{8}$/.test(d) && a !== b && room.realCodes.has(a) && room.realCodes.has(b);
     // one attempt only: a wrong code ends the game
-    room.phase = 'ended'; room.result = ok ? 'DISARMED' : 'FAILED';
+    room.phase = 'ended'; room.result = ok ? 'DISARMED' : 'FAILED'; endLog(room.result);
     broadcast();
   } else if (msg.type === 'check' && room.phase === 'play' && me.role === SURVIVOR && !room.check && room.defcon <= 4) {
     // one code check per match, from DEFCON 4: tests a single 4-digit code without using the commit
@@ -316,7 +335,7 @@ function onMessage(ws, msg) {
     if (!text || !other || (mode === 'role' && other.role === SURVIVOR)) return; // the Survivor can't be addressed by role
     if (!findThread(me, other, as, mode) && chatsLeft(me) <= 0) return; // no new chats left this DEFCON
     const t = threadFor(me, other, as, mode);
-    t.msgs.push({ from: me, text });
+    addMsg(t, me, text);
     t.kill.clear(); // a new message cancels any destroy requests
     broadcast();
     if (other.isBot) botReply(t, other);
@@ -339,7 +358,7 @@ function onMessage(ws, msg) {
       pres: { a: f.a.role === 'President', b: f.b.role === 'President' }, // server-only: the President is always redacted when published
       msgs: f.msgs.map((m) => ({ from: m.from === f.a ? 'a' : 'b', text: m.text })) });
     room.leakDefcon = room.defcon;
-    t.msgs.push({ from: me, text: '[ FILE ]' });
+    addMsg(t, me, '[ FILE ]');
     t.kill.clear();
     broadcast();
   } else if (msg.type === 'publish' && room.phase === 'play' && me.role === 'Mass Media' && room.pubDefcon !== room.defcon) {
@@ -395,7 +414,7 @@ wss.on('connection', (ws) => {
     const p = ws.player;
     if (p && p.ws === ws) {
       p.ws = null;
-      if (!room.players.some((x) => x.ws)) { room.phase = 'lobby'; room.players = []; room.host = null; room.code = null; room.result = null; room.chats = []; room.tap = null; room.embassy = null; room.defcon = 5; room.ready = new Set(); return; }
+      if (!room.players.some((x) => x.ws)) { if (room.phase === 'play') endLog('EVERYONE LEFT'); room.phase = 'lobby'; room.players = []; room.host = null; room.code = null; room.result = null; room.chats = []; room.tap = null; room.embassy = null; room.defcon = 5; room.ready = new Set(); return; }
       if (room.phase === 'play') { advanceIfReady(); broadcast(); }
       if (room.phase === 'lobby') { room.players = room.players.filter((x) => x !== p); if (room.host === p) room.host = null; broadcast(); }
     }
