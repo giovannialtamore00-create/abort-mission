@@ -1,4 +1,4 @@
-﻿# Abort Mission
+# Abort Mission
 
 6-player social deduction demo for friends over a voice call. Host runs it on their PC and shares a Cloudflare tunnel link.
 Stack: Node.js + `ws`, one in-memory room, vanilla JS client. Files: `server.js`, `public/index.html`, `public/music.m4a`.
