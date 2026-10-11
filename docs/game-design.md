@@ -66,6 +66,7 @@ Script (temp folder, not saved in project) plays 6 scripted bots on the real ser
 - + Embassy (no Survivor proof, honest players give code 40% when asked by name): 1/10 wins, 14-38 s, all DEFCON 5. Embassy used 10/10 (at 4-8 s), wiretap 3/10, leak/publish 0/10.
 - Strict Survivor (commits only codes heard directly AND seen in a published leak; corrupt bots keep one consistent fake code): 3/10 wins, 3/10 wrong code (a consistent fake passed the check), 4/10 never sure -> NUKES HIT at end of DEFCON 1. Games 2-5 min, all abilities used every DEFCON. A corrupt Media redacting codes blocks all proof.
 - One attempt (bots guess 2 of the received codes at random): 2/10 wins, 8/10 wrong code, all within 26 s at DEFCON 5.
+- Chat sim 2026-10-11 (current rules, 3 scripted humans + 3 server bots, DEFCON 20 s): 3/10 DISARMED, 7/10 TIMEOUT (Survivor never got 2 codes). Server bots never give codes (canned lines), so with bots in the room the Survivor can only get codes from humans. Bot lines never repeated within a game. Transcripts: sim-chats.txt (untracked), script in temp am-sim/sim-chats.js.
 
 ### Deductions from the sims (for improving bot strategies)
 1. One attempt is what makes the game a game; unlimited attempts = guaranteed fast win.
