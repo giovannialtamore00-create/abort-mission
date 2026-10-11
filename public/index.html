@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Abort Mission</title>
+<style>
+  :root { --bg:#0b0f0c; --panel:#121a14; --g:#38ff7a; --dim:#2a6b43; --red:#ff4545; --amber:#ffb020; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; background:var(--bg); color:var(--g); font-family:"Courier New",monospace; display:flex; justify-content:center; padding:20px; }
+  #app { width:100%; max-width:480px; }
+  h1 { letter-spacing:4px; font-size:22px; margin:8px 0 4px; text-align:center; }
+  .sub { text-align:center; color:var(--dim); margin-bottom:20px; font-size:13px; }
+  .box { background:var(--panel); border:1px solid var(--dim); padding:16px; margin-bottom:16px; }
+  .embsel { flex:1; min-width:0; padding:10px; background:#000; border:1px solid var(--g); color:var(--g); font:inherit; font-size:16px; }
+  input[type=text] { width:100%; padding:12px; background:#000; border:1px solid var(--g); color:var(--g); font:inherit; font-size:18px; }
+  button { width:100%; padding:14px; margin-top:10px; background:transparent; color:var(--g); border:2px solid var(--g); font:inherit; font-size:18px; letter-spacing:2px; cursor:pointer; }
+  button:hover { background:var(--g); color:#000; }
+  .card { border:2px solid var(--g); padding:20px; text-align:center; }
+  .card.corrupt { border-color:var(--red); color:var(--red); }
+  .role { font-size:26px; font-weight:bold; margin:6px 0 10px; }
+  .tag { display:inline-block; padding:3px 10px; border:1px solid currentColor; font-size:13px; letter-spacing:2px; }
+  .code { font-size:44px; letter-spacing:8px; margin:14px 0 4px; color:var(--amber); }
+  .desc { font-size:14px; color:#9fdcb4; }
+  .card.corrupt .desc { color:#ff9a9a; }
+  .lbl { font-size:12px; color:var(--dim); letter-spacing:2px; }
+  .names div { padding:4px 0; }
+  #digits { width:100%; text-align:center; font-size:30px; letter-spacing:6px; }
+  .status { text-align:center; font-size:22px; letter-spacing:3px; min-height:30px; margin-top:10px; }
+  .ok { color:var(--g); } .bad { color:var(--red); }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  td { padding:5px 4px; border-bottom:1px solid var(--dim); }
+  .err { color:var(--red); text-align:center; min-height:20px; }
+  #chbtn { cursor:pointer; font-size:13px; letter-spacing:2px; border:1px solid var(--dim); padding:4px 8px; background:var(--panel); display:none; }
+  #chbtn.on, #rolesbtn.on { border-color:var(--g); background:#1b281f; }
+  #chbtn b { color:#000; background:var(--amber); border-radius:10px; padding:0 7px; margin-left:6px; }
+  #chat { position:fixed; z-index:3; left:50%; transform:translateX(-50%); bottom:0; width:100%; max-width:480px; height:45vh; background:var(--panel); border:2px solid var(--g); display:none; flex-direction:column; }
+  #chat.open { display:flex; }
+  #chat .top { display:flex; justify-content:space-between; padding:8px 12px; border-bottom:1px solid var(--dim); letter-spacing:2px; }
+  #chat .top span { cursor:pointer; }
+  #chat button { width:auto; margin:0; padding:8px 14px; font-size:14px; }
+  .tabs { display:flex; gap:8px; padding:8px 12px; }
+  .tabs button { flex:1; } .tabs button.on { background:var(--g); color:#000; }
+  .rows { overflow:auto; }
+  #chlist { flex:1; min-height:0; overflow:auto; }
+  .row { padding:10px 12px; border-bottom:1px solid var(--dim); cursor:pointer; display:flex; justify-content:space-between; }
+  .row:hover { background:#1b281f; } .row small { color:var(--dim); } .dot { color:var(--amber); }
+  #chthread { display:none; flex-direction:column; flex:1; min-height:0; }
+  #chmsgs { flex:1; overflow:auto; padding:10px 12px; }
+  .m { margin:6px 0; max-width:85%; padding:6px 10px; border:1px solid var(--dim); font-size:15px; word-wrap:break-word; }
+  .m i { display:block; font-size:11px; color:var(--dim); font-style:normal; }
+  .m.me { margin-left:auto; border-color:var(--g); }
+  .send { display:flex; gap:8px; padding:8px 12px; border-top:1px solid var(--dim); }
+  .send input { flex:1; font-size:16px; padding:8px; }
+  button:disabled { opacity:.35; cursor:not-allowed; } button:disabled:hover { background:transparent; color:var(--g); }
+  button.tapready { border-color:var(--amber); color:var(--amber); animation:pulse 1.2s infinite; } button.tapready:hover { background:var(--amber); color:#000; }
+  button.tapopt { font-size:14px; padding:10px; }
+  @keyframes pulse { 50% { box-shadow:0 0 12px var(--amber); } }
+  body { padding-top:var(--tb,96px); }
+  #tools { order:2; width:100%; display:flex; gap:6px; }
+  #rolesbtn { cursor:pointer; font-size:13px; letter-spacing:2px; border:1px solid var(--dim); padding:4px 8px; background:var(--panel); }
+  #comp { position:fixed; z-index:4; left:0; top:var(--tb,96px); bottom:0; width:min(320px,100vw); background:var(--panel); border:2px solid var(--g); display:none; flex-direction:column; }
+  #comp.open { display:flex; }
+  #comp .top { display:flex; justify-content:space-between; padding:8px 12px; border-bottom:1px solid var(--dim); letter-spacing:2px; } #comp .top span { cursor:pointer; }
+  #comp .cbody { overflow:auto; padding:10px 12px; flex:1; }
+  .crole { border:1px solid var(--dim); padding:8px 10px; margin:10px 0; } .crole.mine { border-color:var(--g); background:#16231a; }
+  .crole .desc { margin:4px 0; }
+  /* keep the game screen free: side panels on wide screens, bottom sheet with extra scroll room on narrow ones */
+  @media (min-width:900px) {
+    #chat { left:auto; right:0; transform:none; top:var(--tb,96px); bottom:0; height:auto; width:380px; max-width:none; }
+    body.chatopen { padding-right:400px; } body.compopen { padding-left:340px; }
+  }
+  @media (max-width:899px) { body.chatopen { padding-bottom:calc(45vh + 20px); } }
+  #topbar { position:fixed; top:0; left:0; right:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--dim); padding:6px 10px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:6px; }
+  #tbl { display:flex; gap:6px; }
+  #defcon { order:3; width:100%; display:none; justify-content:center; align-items:center; gap:8px; }
+  .dlbl { letter-spacing:3px; font-size:13px; color:var(--dim); }
+  .dl { width:34px; padding:4px 0; text-align:center; border:1px solid var(--dim); color:var(--dim); font-size:18px; }
+  .dl.on { color:#000; font-weight:bold; box-shadow:0 0 12px currentColor; }
+  .dl.d5.on { background:#e8e8e8; border-color:#e8e8e8; color:#000; } .dl.d4.on { background:#38ff7a; border-color:#38ff7a; }
+  .dl.d3.on { background:#ffd020; border-color:#ffd020; } .dl.d2.on { background:#ff8c1a; border-color:#ff8c1a; } .dl.d1.on { background:#ff4545; border-color:#ff4545; }
+  #readybtn { width:auto; margin:0; padding:6px 12px; font-size:14px; } #readybtn.isready { background:var(--g); color:#000; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const app = document.getElementById('app');
+let ws, state = null, err = '';
+let savedCode = '';
+let savedName = localStorage.getItem('am_name') || '';
+
+// ---- language (EN / IT) ----
+let lang = localStorage.getItem('am_lang') || ((navigator.language || '').toLowerCase().startsWith('it') ? 'it' : 'en');
+const TX = {
+  en: {
+    sub: 'INCOMING WARHEAD // NUCLEAR PROTOCOL ENGAGED', enterName: 'ENTER YOUR NAME', host: 'HOST GAME', join: 'JOIN GAME', roomCode: 'ROOM CODE', 'Wrong room code': 'Wrong room code (host must create the game first)',
+    lobby: (n) => `LOBBY (${n}/6) — bots fill empty seats`, you: '(you)', start: 'START GAME', waitHost: 'Waiting for host to start...',
+    noHost: 'No host yet — someone must press HOST GAME', yourRole: 'YOUR ROLE', corrupt: 'CORRUPT', loyal: 'LOYAL', abortCode: 'ABORT CODE',
+    noCode: 'NO ABORT CODE', fellow: (n) => `${n} other corrupt player${n > 1 ? 's' : ''} (identity hidden)`, console: 'ABORT CONSOLE — ENTER 2 CODES (8 DIGITS)', commit: 'COMMIT',
+    chkInfo: 'CODE CHECK — test ONE 4-digit code. Once per match, from DEFCON 4; does not use your commit.', locked: (n) => `LOCKED until DEFCON ${n}`, chkBtn: 'CHECK', chkValid: 'VALID', chkInvalid: 'INVALID', rejected: 'CODES REJECTED', attempts: 'attempts:', disarmed: 'NUKES DISARMED', mission: 'Mission complete. Final reveal:', failed: 'WRONG CODE — NUKES HIT', timeUp: "TIME'S UP — NUKES HIT", missionFail: 'Mission failed. Final reveal:', loyalLow: 'loyal',
+    fake: '(fake)', again: 'NEW GAME', music: (on) => (on ? 'MUSIC: ON' : 'MUSIC: OFF'),
+    'Game already started': 'Game already started', 'Room is full': 'Room is full', 'Room already has a host': 'Room already has a host',
+    pubName: 'PUBLISH', pubInfo: 'Publish an extract of a file to everyone. You can only publish files Intelligence leaks to you. Once per DEFCON.', pubUsed: 'Already published this DEFCON.', pubNone: 'You have no files. Intelligence must leak one to you.', pubPick: 'Choose a file:', leakFile: 'LEAK FILE', leakUsed: 'You already leaked a file this DEFCON.', leakNone: 'No findings yet. Wiretap a chat first.', leakPick: 'Choose a finding to leak to Mass Media:', pubSend: 'PUBLISH LEAK', pubShow: 'SHOW', pubRed: 'REDACT', pubHide: 'OMIT', pubRedA: (n) => 'Redact identity: ' + n, pubRedB: (n) => 'Redact identity: ' + n, pubRedBy: 'Redact who leaked it', leaksTitle: 'LEAKS', leakBy: 'LEAKED BY', redacted: '█████',
+    destroy: 'DESTROY CHAT', destroyWait: 'DESTROY: waiting for the other side (cancel)', destroyAsk: 'The other side wants to destroy this chat. Press to agree (only before the 30s wiretap timer ends).',
+    chat: 'CHAT', chatTitle: 'PRIVATE CHAT', byName: 'BY NAME', byRole: 'BY ROLE', back: '< BACK', placeholder: 'message...', sendBtn: 'SEND',
+    msg: 'msg', fresh: 'new', to: 'TO', youLbl: 'you', modeName: 'name', modeRole: 'role', sendAs: 'SEND AS', convos: 'CONVERSATIONS', newMsg: 'NEW MESSAGE', asLbl: 'as',
+    empty: 'No messages yet. Sending the first one starts this chat.', left: (n) => `${n}/5 new chats left this DEFCON`, noLeft: 'No new chats left this DEFCON. Reply in your open chats or wait for DEFCON to drop.',
+    ready: 'READY', defcon: 'DEFCON', final: 'FINAL STAGE',
+    rolesBtn: 'ROLES', compTitle: 'UNREDACTED FILES', compIntro: 'Two of the five roles besides the Designated Survivor are secretly corrupt. The Survivor is never corrupt.',
+    abil: {
+      'President': 'Passive: your name and role are always redacted in published leaks.', 'Mass Media': 'Ability: PUBLISH — leak an extract of one of your chats to everyone, once per DEFCON. You can redact parts of it, even who leaked it.', 'Army General': 'Ability: none yet.', 'Foreign Affairs': 'Ability: EMBASSY — pick two players: their chats cannot be wiretapped until DEFCON drops. Once per DEFCON.',
+      'Intelligence': 'Ability: WIRETAP — listen in on one private chat, once per DEFCON.',
+      'Designated Survivor': 'Ability: ABORT CONSOLE — enter 2 codes to disarm the nukes.',
+    },
+    embName: 'PROTECT', embInfo: 'EMBASSY — pick two players: their chats cannot be wiretapped until DEFCON drops. Once per DEFCON.', embDone: 'Protected until DEFCON drops:', embUsed: 'Already used this DEFCON.',
+    tapName: 'WIRETAP', tapInfo: 'A chat becomes tappable 30 seconds after its first message. One use per DEFCON.',
+    tapWait: 'No chat is ready to wiretap yet.', tapPick: 'READY — choose a chat to listen to:', tapLive: 'INTERCEPTING:',
+    roles: { 'President': 'President', 'Mass Media': 'Mass Media', 'Intelligence': 'Intelligence', 'Army General': 'Army General', 'Foreign Affairs': 'Foreign Affairs', 'Designated Survivor': 'Designated Survivor' },
+    desc: {
+      'President': 'Leader of the nation. Holds an Abort Mission code.',
+      'Mass Media': 'Controls the public narrative. Never holds a code.',
+      'Intelligence': 'Knows what others do not. Holds an Abort Mission code.',
+      'Army General': 'Commands the military. Holds an Abort Mission code.',
+      'Foreign Affairs': 'Speaks to the world. Holds an Abort Mission code.',
+      'Designated Survivor': 'Only one left to act. Find 2 working codes and enter them on the console. Never corrupt, never holds a code.',
+    },
+  },
+  it: {
+    sub: 'TESTATA IN ARRIVO // PROTOCOLLO NUCLEARE ATTIVO', enterName: 'INSERISCI IL TUO NOME', host: 'CREA PARTITA', join: 'ENTRA IN PARTITA', roomCode: 'CODICE STANZA', 'Wrong room code': "Codice stanza errato (prima l'host deve creare la partita)",
+    lobby: (n) => `LOBBY (${n}/6) — i bot riempiono i posti vuoti`, you: '(tu)', start: 'INIZIA PARTITA', waitHost: "In attesa che l'host avvii...",
+    noHost: 'Nessun host — qualcuno deve premere CREA PARTITA', yourRole: 'IL TUO RUOLO', corrupt: 'CORROTTO', loyal: 'LEALE', abortCode: 'CODICE DI ANNULLAMENTO',
+    noCode: 'NESSUN CODICE', fellow: (n) => (n > 1 ? `${n} altri giocatori corrotti` : '1 altro giocatore corrotto') + ' (identità nascosta)', console: 'CONSOLE DI ANNULLAMENTO — INSERISCI 2 CODICI (8 CIFRE)', commit: 'CONFERMA',
+    chkInfo: 'VERIFICA CODICE — prova UN codice di 4 cifre. Una volta per partita, dal DEFCON 4; non usa il tuo invio.', locked: (n) => `BLOCCATA fino al DEFCON ${n}`, chkBtn: 'VERIFICA', chkValid: 'VALIDO', chkInvalid: 'NON VALIDO', rejected: 'CODICI RIFIUTATI', attempts: 'tentativi:', disarmed: 'TESTATE DISINNESCATE', mission: 'Missione compiuta. Rivelazione finale:', failed: 'CODICE ERRATO — TESTATE A SEGNO', timeUp: 'TEMPO SCADUTO — TESTATE A SEGNO', missionFail: 'Missione fallita. Rivelazione finale:', loyalLow: 'leale',
+    fake: '(falso)', again: 'NUOVA PARTITA', music: (on) => (on ? 'MUSICA: SÌ' : 'MUSICA: NO'),
+    'Game already started': 'Partita già iniziata', 'Room is full': 'Stanza piena', 'Room already has a host': 'La stanza ha già un host',
+    pubName: 'PUBBLICA', pubInfo: 'Pubblica a tutti un estratto di un file. Puoi pubblicare solo file che Intelligence ti passa. Una volta per DEFCON.', pubUsed: 'Hai già pubblicato in questo DEFCON.', pubNone: 'Non hai file. Intelligence deve passartene uno.', pubPick: 'Scegli un file:', leakFile: 'PASSA FILE', leakUsed: 'Hai già passato un file in questo DEFCON.', leakNone: 'Nessun risultato. Intercetta prima una chat.', leakPick: 'Scegli un risultato da passare a Mass Media:', pubSend: 'PUBBLICA', pubShow: 'MOSTRA', pubRed: 'OSCURA', pubHide: 'ESCLUDI', pubRedA: (n) => 'Oscura identità: ' + n, pubRedB: (n) => 'Oscura identità: ' + n, pubRedBy: 'Oscura chi ha diffuso', leaksTitle: 'FUGHE DI NOTIZIE', leakBy: 'DIFFUSO DA', redacted: '█████',
+    destroy: 'DISTRUGGI CHAT', destroyWait: "DISTRUGGI: in attesa dell'altro (annulla)", destroyAsk: "L'altro vuole distruggere questa chat. Premi per accettare (solo prima che finisca il timer di 30s dell'intercettazione).",
+    chat: 'CHAT', chatTitle: 'CHAT PRIVATA', byName: 'PER NOME', byRole: 'PER RUOLO', back: '< INDIETRO', placeholder: 'messaggio...', sendBtn: 'INVIA',
+    msg: 'msg', fresh: 'nuova', to: 'A', youLbl: 'tu', modeName: 'nome', modeRole: 'ruolo', sendAs: 'INVIA COME', convos: 'CONVERSAZIONI', newMsg: 'NUOVO MESSAGGIO', asLbl: 'come',
+    empty: 'Nessun messaggio. Il primo messaggio avvia la chat.', left: (n) => `${n}/5 nuove chat rimaste in questo DEFCON`, noLeft: 'Nessuna nuova chat rimasta in questo DEFCON. Rispondi nelle chat aperte o aspetta il calo del DEFCON.',
+    ready: 'PRONTO', defcon: 'DEFCON', final: 'FASE FINALE',
+    rolesBtn: 'RUOLI', compTitle: 'FILE NON CENSURATI', compIntro: 'Due dei cinque ruoli oltre al Sopravvissuto Designato sono segretamente corrotti. Il Sopravvissuto non è mai corrotto.',
+    abil: {
+      'President': 'Passiva: il tuo nome e ruolo sono sempre oscurati nelle fughe di notizie pubblicate.', 'Mass Media': 'Abilità: PUBBLICA — diffondi a tutti un estratto di una tua chat, una volta per DEFCON. Puoi oscurare parti, anche chi ha fatto la fuga di notizie.', 'Army General': 'Abilità: nessuna per ora.', 'Foreign Affairs': 'Abilità: AMBASCIATA — scegli due giocatori: le loro chat non possono essere intercettate fino al calo del DEFCON. Una volta per DEFCON.',
+      'Intelligence': 'Abilità: INTERCETTAZIONE — ascolta una chat privata, una volta per DEFCON.',
+      'Designated Survivor': 'Abilità: CONSOLE — inserisci 2 codici per disinnescare le testate.',
+    },
+    embName: 'PROTEGGI', embInfo: 'AMBASCIATA — scegli due giocatori: le loro chat non possono essere intercettate fino al calo del DEFCON. Una volta per DEFCON.', embDone: 'Protette fino al calo del DEFCON:', embUsed: 'Già usata in questo DEFCON.',
+    tapName: 'INTERCETTAZIONE', tapInfo: 'Una chat diventa intercettabile 30 secondi dopo il suo primo messaggio. Un solo uso per DEFCON.',
+    tapWait: 'Nessuna chat è ancora pronta da intercettare.', tapPick: 'PRONTA — scegli una chat da ascoltare:', tapLive: 'IN ASCOLTO:',
+    roles: { 'President': 'Presidente', 'Mass Media': 'Mass Media', 'Intelligence': 'Intelligence', 'Army General': "Generale dell'Esercito", 'Foreign Affairs': 'Ministro degli Esteri', 'Designated Survivor': 'Sopravvissuto Designato' },
+    desc: {
+      'President': 'Capo della nazione. Possiede un codice di annullamento.',
+      'Mass Media': 'Controlla la narrativa pubblica. Non possiede mai un codice.',
+      'Intelligence': 'Sa ciò che gli altri ignorano. Possiede un codice di annullamento.',
+      'Army General': "Comanda l'esercito. Possiede un codice di annullamento.",
+      'Foreign Affairs': 'Parla al mondo. Possiede un codice di annullamento.',
+      'Designated Survivor': "L'unico rimasto in grado di agire. Trova 2 codici funzionanti e inseriscili nella console. Mai corrotto, non possiede mai un codice.",
+    },
+  },
+};
+const t = (k, ...a) => { const v = TX[lang][k]; return typeof v === 'function' ? v(...a) : v; };
+const rn = (r) => TX[lang].roles[r] || r;
+const lab = (mode, x) => (mode === 'role' ? rn(x) : x); // role ids come from the server in English
+
+// background music: put the track at public/music.m4a; starts on the first click (browsers block autoplay)
+const music = new Audio('/music.m4a');
+music.loop = true;
+const vol = document.createElement('input');
+vol.type = 'range'; vol.min = 0; vol.max = 100; vol.value = localStorage.getItem('am_vol') ?? 5;
+vol.style.cssText = 'width:80px;padding:0;margin:0;accent-color:#38ff7a;cursor:pointer';
+music.volume = vol.value / 200;
+vol.oninput = () => { music.volume = vol.value / 200; localStorage.setItem('am_vol', vol.value); startMusic(); };
+let muted = localStorage.getItem('am_muted') === '1';
+music.muted = muted;
+const startMusic = () => music.play().catch(() => {});
+const barCss = 'cursor:pointer;font-size:13px;letter-spacing:2px;border:1px solid var(--dim);padding:4px 8px;background:var(--panel)';
+const muteBtn = document.createElement('div');
+muteBtn.style.cssText = barCss;
+const langBtn = document.createElement('div');
+langBtn.style.cssText = barCss;
+const paintBar = () => { muteBtn.textContent = t('music', !muted); langBtn.textContent = lang === 'it' ? 'IT | en' : 'EN | it'; };
+muteBtn.onclick = () => { muted = !muted; music.muted = muted; localStorage.setItem('am_muted', muted ? '1' : '0'); paintBar(); startMusic(); };
+langBtn.onclick = () => {
+  const n = document.getElementById('name'); if (n) savedName = n.value;
+  const rc = document.getElementById('rcode'); if (rc) savedCode = rc.value;
+  lang = lang === 'it' ? 'en' : 'it'; localStorage.setItem('am_lang', lang); paintBar(); render(); send({ type: 'lang', lang });
+};
+document.body.insertAdjacentHTML('afterbegin', '<div id="topbar"><div id="tbl"></div><div id="tbr"></div><div id="tools"><div id="rolesbtn"></div></div><div id="defcon"></div></div>');
+document.getElementById('tbl').append(langBtn, muteBtn, vol);
+paintBar();
+
+function connect(name, host, code) {
+  startMusic();
+  ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host);
+  ws.onopen = () => ws.send(JSON.stringify({ type: 'join', name, host: !!host, code, lang }));
+  ws.onmessage = (e) => {
+    const m = JSON.parse(e.data);
+    if (m.error) { err = m.error; return render(); }
+    err = ''; sounds(state, m); state = m;
+    if (m.defconLeft != null) defEnd = Date.now() + m.defconLeft;
+    render();
+  };
+  ws.onclose = () => { if (state) setTimeout(() => connect(name, state.host, code), 1000); };
+}
+const send = (o) => ws.send(JSON.stringify(o));
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+function cardHtml(c, partnerCount) {
+  return `<div class="card ${c.corrupt ? 'corrupt' : ''}">
+    <div class="lbl">${t('yourRole')}</div>
+    <div class="role">${esc(rn(c.role))}</div>
+    <span class="tag">${c.corrupt ? t('corrupt') : t('loyal')}</span>
+    <p class="desc">${esc(TX[lang].desc[c.role] || c.desc)}</p>
+    ${c.code ? `<div class="lbl">${t('abortCode')}</div><div class="code">${c.code}</div>` : `<div class="lbl">${t('noCode')}</div>`}
+    ${partnerCount ? `<p class="desc">${t('fellow', partnerCount)}</p>` : ''}
+  </div>`;
+}
+
+// Intelligence ability: wiretap one chat per game
+let tapOpen = false;
+function tapHtml(tp) {
+  const pair = (o) => `${esc(lab(o.am, o.a))} &harr; ${esc(lab(o.bm, o.b))}`;
+  let h = `<div class="box" style="margin-top:16px"><div class="lbl">${t('tapInfo')}</div>`;
+  if (tp.used) {
+    h += `<div class="status ok" style="font-size:16px;min-height:0;margin:10px 0">${t('tapLive')} ${pair(tp)}</div>`;
+    h += tp.msgs.map((m) => `<div class="m"><i>${esc(lab(m.lm, m.label))}</i>${esc(m.text)}</div>`).join('');
+  } else {
+    const ready = tp.options.length > 0;
+    h += `<button id="tapbtn" class="${ready ? 'tapready' : ''}" ${ready ? '' : 'disabled'}>${t('tapName')}</button>`;
+    if (!ready) h += `<div class="sub" style="margin:10px 0 0">${t('tapWait')}</div>`;
+    else if (tapOpen) h += `<div class="lbl" style="margin-top:12px">${t('tapPick')}</div>` + tp.options.map((o) => `<button class="tapopt" data-id="${o.id}">${pair(o)}</button>`).join('');
+  }
+  return h + '</div>';
+}
+
+// Foreign Affairs ability: embassy shelters every chat between two players from wiretaps (once per DEFCON)
+const emb = { a: '', b: '' };
+function embHtml(s) {
+  let h = `<div class="box" style="margin-top:16px"><div class="lbl">${t('embInfo')}</div>`;
+  if (s.emb.used) return h + `<div class="status ok" style="font-size:16px;min-height:0;margin:10px 0">${s.emb.a ? t('embDone') + ' ' + esc(s.emb.a) + ' &harr; ' + esc(s.emb.b) : t('embUsed')}</div></div>`;
+  const sel = (k) => `<select class="embsel" data-k="${k}"><option value="">—</option>${s.names.map((n) => `<option ${emb[k] === n ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>`;
+  const ok = emb.a && emb.b && emb.a !== emb.b;
+  return h + `<div style="display:flex;gap:8px;margin:10px 0">${sel('a')}${sel('b')}</div><button id="embbtn" class="${ok ? 'tapready' : ''}" ${ok ? '' : 'disabled'}>${t('embName')}</button></div>`;
+}
+
+// Mass Media ability: publish an extract of one of your chats (once per DEFCON), with redactions
+const pub = { open: false, id: null, st: {}, redA: false, redB: false, redBy: false };
+const NEXT = { show: 'red', red: 'hide', hide: 'show' };
+function pubHtml(s) {
+  const who = (o) => esc(lab(o.mode, o.label));
+  let h = `<div class="box" style="margin-top:16px"><div class="lbl">${t('pubInfo')}</div>`;
+  const files = s.files || [];
+  if (!files.length) return h + `<div class="sub" style="margin:10px 0 0">${t('pubNone')}</div></div>`;
+  if (s.pubUsed) return h + `<div class="sub" style="margin:10px 0 0">${t('pubUsed')}</div></div>`;
+  h += `<button id="pubbtn" class="tapready">${t('pubName')} (${files.length})</button>`;
+  if (pub.open) {
+    const cur = files.find((x) => x.id === pub.id);
+    if (!cur) h += `<div class="lbl" style="margin-top:12px">${t('pubPick')}</div>` + files.map((x) => `<button class="tapopt pubpick" data-id="${x.id}">${who(x.a)} &harr; ${who(x.b)} (${x.msgs.length})</button>`).join('');
+    else {
+      h += cur.msgs.map((m, i) => { const st = pub.st[i] || 'show';
+        return `<div class="m" style="${st === 'hide' ? 'opacity:.35' : ''}"><i>${who(cur[m.from])}</i>${st === 'red' ? t('redacted') : esc(m.text)}<button class="pubst tapopt" data-i="${i}" style="margin-top:6px">${t({ show: 'pubShow', red: 'pubRed', hide: 'pubHide' }[st])}</button></div>`; }).join('');
+      h += [['redA', 'pubRedA'], ['redB', 'pubRedB'], ['redBy', 'pubRedBy']].map(([k, l]) => `<label style="display:block;margin:8px 0"><input type="checkbox" class="pubck" data-k="${k}" ${pub[k] ? 'checked' : ''} style="width:auto"> ${t(l, who(cur[k === 'redA' ? 'a' : 'b']))}</label>`).join('');
+      h += `<button id="pubsend">${t('pubSend')}</button>`;
+    }
+  }
+  return h + '</div>';
+}
+const myName = (as) => (as === 'role' ? state.card.role : state.you);
+function leaksHtml(leaks) {
+  const who = (o) => (o ? esc(lab(o.mode, o.label)) : t('redacted'));
+  return `<div class="box" style="margin-top:16px"><div class="lbl">${t('leaksTitle')}</div>` + leaks.map((l) =>
+    `<div style="border-top:1px solid var(--dim);padding-top:8px;margin-top:8px"><div class="lbl">DEFCON ${l.defcon} // ${t('leakBy')}: ${l.by ? esc(l.by) : t('redacted')}<br>${who(l.a)} &harr; ${who(l.b)}</div>` +
+    l.msgs.map((m) => `<div class="m"><i>${who(l[m.from])}</i>${m.text === null ? t('redacted') : esc(m.text)}</div>`).join('') + '</div>').join('') + '</div>';
+}
+
+function renderMain() {
+  // keep the typing field intact across re-renders
+  const typed = document.getElementById('digits') ? document.getElementById('digits').value : '';
+  const typedChk = document.getElementById('chkdigits') ? document.getElementById('chkdigits').value : '';
+  const focusId = document.activeElement && document.activeElement.id;
+  let h = `<h1>ABORT MISSION</h1><div class="sub">${t('sub')}</div>`;
+  if (!state) {
+    h += `<div class="box"><div class="lbl">${t('enterName')}</div>
+      <input type="text" id="name" maxlength="16" value="${esc(savedName)}" autofocus>
+      <div class="lbl">${t('roomCode')}</div><input type="text" id="rcode" maxlength="4" value="${esc(savedCode)}" style="text-transform:uppercase">
+      <button id="host">${t('host')}</button><button id="join">${t('join')}</button><div class="err">${esc(t(err) || err)}</div></div>`;
+    app.innerHTML = h;
+    const go = (host) => () => { const n = document.getElementById('name').value.trim(); if (!n) return; savedName = n; localStorage.setItem('am_name', n); savedCode = document.getElementById('rcode').value.trim().toUpperCase(); connect(n, host, savedCode); };
+    document.getElementById('host').onclick = go(true);
+    document.getElementById('join').onclick = go(false);
+    document.getElementById('name').onkeydown = (e) => { if (e.key === 'Enter') go(false)(); };
+    return;
+  }
+  const s = state;
+  if (s.phase === 'lobby') {
+    h += `<div class="box"><div class="lbl">${t('roomCode')}</div><div style="font-size:2em;letter-spacing:.3em">${esc(s.code || '')}</div></div>`;
+    h += `<div class="box"><div class="lbl">${t('lobby', s.names.length)}</div><div class="names">${s.names.map((n) => `<div>&gt; ${esc(n)}${n === s.you ? ' ' + t('you') : ''}</div>`).join('')}</div></div>`;
+    h += s.host ? `<button id="start">${t('start')}</button>` : '<div class="sub">' + (s.hasHost ? t('waitHost') : t('noHost')) + '</div>';
+  } else if (s.phase === 'play') {
+    h += cardHtml(s.card, s.partnerCount);
+    if (s.tap) h += tapHtml(s.tap);
+    if (s.card.role === 'Mass Media') h += pubHtml(s);
+    if (s.emb) h += embHtml(s);
+    if (s.leaks && s.leaks.length) h += leaksHtml(s.leaks);
+    if (s.card.role === 'Designated Survivor') {
+      h += s.defcon > 3 ? `<div class="box" style="margin-top:16px"><div class="lbl">${t('console')}</div><div class="status bad" style="min-height:0;margin:10px 0">${t('locked', 3)}</div></div>` : `<div class="box" style="margin-top:16px"><div class="lbl">${t('console')}</div>
+        <input type="text" id="digits" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="00000000" value="${esc(typed)}">
+        <button id="commit">${t('commit')}</button>
+        <div class="status ${s.result === 'REJECTED' ? 'bad' : ''}">${s.result === 'REJECTED' ? t('rejected') : ''}</div>
+        <div class="lbl" style="text-align:center">${t('attempts')} ${s.attempts}</div></div>`;
+      h += `<div class="box" style="margin-top:16px"><div class="lbl">${t('chkInfo')}</div>` + (s.check
+        ? `<div class="status ${s.check.ok ? 'ok' : 'bad'}" style="font-size:20px;min-height:0;margin:10px 0">${esc(s.check.code)} — ${t(s.check.ok ? 'chkValid' : 'chkInvalid')}</div>`
+        : s.defcon > 4 ? `<div class="status bad" style="min-height:0;margin:10px 0">${t('locked', 4)}</div>` : `<input type="text" id="chkdigits" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="0000" value="${esc(typedChk)}"><button id="chkbtn">${t('chkBtn')}</button>`) + '</div>';
+    }
+  } else {
+    const won = s.result === 'DISARMED';
+    h += `<div class="status ${won ? 'ok' : 'bad'}" style="font-size:30px;margin:20px 0">${t(won ? 'disarmed' : s.result === 'TIMEOUT' ? 'timeUp' : 'failed')}</div><div class="sub">${t(won ? 'mission' : 'missionFail')}</div>
+      <div class="box"><table>${s.reveal.map((r) => `<tr class="${r.corrupt ? 'bad' : ''}"><td>${esc(r.name)}</td><td>${esc(rn(r.role))}</td><td>${r.corrupt ? t('corrupt') : t('loyalLow')}</td><td>${r.code ? r.code + (r.real ? '' : ' ' + t('fake')) : '-'}</td></tr>`).join('')}</table></div>`;
+    if (s.host) h += `<button id="again">${t('again')}</button>`;
+  }
+  app.innerHTML = h;
+  const $ = (id) => document.getElementById(id);
+  if ($('start')) $('start').onclick = () => send({ type: 'start' });
+  if ($('again')) $('again').onclick = () => send({ type: 'newgame' });
+  if ($('tapbtn')) $('tapbtn').onclick = () => { tapOpen = !tapOpen; render(); };
+  document.querySelectorAll('.tapopt').forEach((b) => { b.onclick = () => { tapOpen = false; send({ type: 'tap', id: +b.dataset.id }); }; });
+  document.querySelectorAll('.embsel').forEach((b) => { b.onchange = () => { emb[b.dataset.k] = b.value; render(); }; });
+  if ($('embbtn')) $('embbtn').onclick = () => { send({ type: 'embassy', a: emb.a, b: emb.b }); emb.a = emb.b = ''; };
+  if ($('pubbtn')) $('pubbtn').onclick = () => { pub.open = !pub.open; pub.id = null; pub.st = {}; render(); };
+  document.querySelectorAll('.pubpick').forEach((b) => { b.onclick = () => { pub.id = +b.dataset.id; pub.st = {}; pub.redA = pub.redB = pub.redBy = false; render(); }; });
+  document.querySelectorAll('.pubst').forEach((b) => { b.onclick = () => { const i = +b.dataset.i; pub.st[i] = NEXT[pub.st[i] || 'show']; render(); }; });
+  document.querySelectorAll('.pubck').forEach((b) => { b.onchange = () => { pub[b.dataset.k] = b.checked; }; });
+  if ($('pubsend')) $('pubsend').onclick = () => {
+    const cur = (state.files || []).find((x) => x.id === pub.id); if (!cur) return;
+    const msgs = cur.msgs.map((m, i) => ({ i, st: pub.st[i] || 'show' })).filter((x) => x.st !== 'hide').map((x) => ({ i: x.i, red: x.st === 'red' }));
+    if (!msgs.length) return;
+    send({ type: 'publish', id: pub.id, msgs, redA: pub.redA, redB: pub.redB, redBy: pub.redBy }); pub.open = false; pub.id = null;
+  };
+  if ($('commit')) {
+    const d = $('digits');
+    d.oninput = () => { d.value = d.value.replace(/\D/g, ''); };
+    const go = () => { if (d.value.length === 8) { send({ type: 'commit', digits: d.value }); d.value = ''; } };
+    $('commit').onclick = go;
+    d.onkeydown = (e) => { if (e.key === 'Enter') go(); };
+    if (typed && focusId !== 'chkdigits') d.focus();
+  }
+  if ($('chkbtn')) {
+    const d = $('chkdigits');
+    d.oninput = () => { d.value = d.value.replace(/\D/g, ''); };
+    const go = () => { if (d.value.length === 4) send({ type: 'check', code: d.value }); };
+    $('chkbtn').onclick = go;
+    d.onkeydown = (e) => { if (e.key === 'Enter') go(); };
+    if (typedChk && focusId === 'chkdigits') d.focus();
+  }
+}
+// ---- private chat (only during play) ----
+// each player has up to 10 chats: one per other player's name, one per other role
+document.getElementById('tools').insertAdjacentHTML('beforeend', '<div id="chbtn"><span id="chbtnl"></span><b id="chbadge" hidden></b></div>');
+document.body.insertAdjacentHTML('beforeend', `<div id="chat"><div class="top"><div id="chtitle"></div><span id="chclose">[X]</span></div>
+<div id="chlist"><div class="lbl" id="convlbl"></div><div class="rows" id="chconv"></div><div class="lbl" id="newlbl" style="margin-top:12px"></div><div class="tabs" id="astabs"><button id="asname"></button><button id="asrole"></button></div><div class="tabs"><button id="tabname"></button><button id="tabrole"></button></div><div class="rows" id="chrows"></div></div>
+<div id="chthread"><div class="tabs"><button id="chback"></button><button id="chkill"></button><button id="chleak"></button></div><div id="chleakbox"></div><div id="chmsgs"></div>
+<div class="send"><input type="text" id="chtext" maxlength="300" autocomplete="off"><button id="chsend"></button></div></div></div>`);
+let leakOpen = false;
+const ch = { open: false, mode: 'name', as: 'name', cur: null }, seen = {};
+const $c = (id) => document.getElementById(id);
+const threadOf = (as, mode, key) => (state.chats || []).find((x) => x.as === as && x.mode === mode && x.with === key);
+const myLab = (as) => (as === 'role' ? rn(state.card.role) : state.you);
+const unread = (x) => x ? x.msgs.slice(seen[x.id] || 0).filter((m) => !m.mine).length : 0;
+function renderChat() {
+  const on = state && state.phase === 'play' && state.chatNames;
+  $c('chbtn').style.display = on ? 'block' : 'none';
+  if (!on) { $c('chat').classList.remove('open'); document.body.classList.remove('chatopen'); return; }
+  $c('chbtnl').textContent = t('chat'); $c('tabname').textContent = t('byName'); $c('tabrole').textContent = t('byRole');
+  $c('chback').textContent = t('back'); $c('chtext').placeholder = t('placeholder'); $c('chsend').textContent = t('sendBtn');
+  if (ch.open && ch.cur) { const x = threadOf(ch.cur.as, ch.cur.mode, ch.cur.key); if (x) seen[x.id] = x.msgs.length; }
+  const total = (state.chats || []).reduce((n, x) => n + unread(x), 0);
+  $c('chbadge').hidden = !total; $c('chbadge').textContent = total;
+  $c('chat').classList.toggle('open', ch.open);
+  $c('chbtn').classList.toggle('on', ch.open); document.body.classList.toggle('chatopen', ch.open);
+  $c('chlist').style.display = ch.cur ? 'none' : 'block';
+  $c('chthread').style.display = ch.cur ? 'flex' : 'none';
+  $c('convlbl').textContent = t('convos'); $c('newlbl').textContent = t('newMsg') + ' (' + t('left', state.chatsLeft) + ') — ' + t('sendAs');
+  const surv = state.card.role === 'Designated Survivor'; // the Survivor can only write as their name
+  if (surv) ch.as = 'name';
+  $c('asrole').style.display = surv ? 'none' : '';
+  $c('asname').textContent = myLab('name'); $c('asrole').textContent = myLab('role');
+  $c('asname').classList.toggle('on', ch.as === 'name'); $c('asrole').classList.toggle('on', ch.as === 'role');
+  $c('chconv').innerHTML = (state.chats || []).filter((x) => x.msgs.length).map((x) => { const u = unread(x);
+    return `<div class="row" data-as="${x.as}" data-mode="${x.mode}" data-k="${esc(x.with)}"><span>${esc(lab(x.mode, x.with))} <small>(${t('asLbl')} ${esc(myLab(x.as))})</small></span><small>${x.msgs.length} ${t('msg')} ${u ? '<span class="dot">● ' + u + '</span>' : ''}</small></div>`; }).join('');
+  $c('tabname').classList.toggle('on', ch.mode === 'name');
+  $c('tabrole').classList.toggle('on', ch.mode === 'role');
+  $c('chtitle').textContent = ch.cur ? t('to') + ' ' + lab(ch.cur.mode, ch.cur.key).toUpperCase() + ' (' + t('asLbl') + ' ' + myLab(ch.cur.as).toUpperCase() + ')' : t('chatTitle');
+  const keys = ch.mode === 'name' ? state.chatNames : state.chatRoles;
+  $c('chrows').innerHTML = keys.map((k) => { const x = threadOf(ch.as, ch.mode, k), u = unread(x);
+    return `<div class="row" data-k="${esc(k)}"><span>${esc(lab(ch.mode, k))}</span><small>${x ? x.msgs.length + ' ' + t('msg') : t('fresh')} ${u ? '<span class="dot">● ' + u + '</span>' : ''}</small></div>`; }).join('');
+  if (ch.cur) {
+    const x = threadOf(ch.cur.as, ch.cur.mode, ch.cur.key), box = $c('chmsgs'), atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+    box.innerHTML = x ? x.msgs.map((m) => `<div class="m ${m.mine ? 'me' : ''}"><i>${m.mine ? t('youLbl') : esc(lab(m.lm, m.label))}</i>${esc(m.text)}</div>`).join('') : `<div class="sub">${t(state.chatsLeft > 0 ? 'empty' : 'noLeft')}</div>`;
+    if (atEnd) box.scrollTop = box.scrollHeight;
+    const k = $c('chkill'); k.style.display = x && x.canKill ? '' : 'none';
+    if (x) { k.textContent = x.killMine ? t('destroyWait') : x.killOther ? t('destroyAsk') : t('destroy'); k.classList.toggle('on', x.killMine || x.killOther); k.onclick = () => send({ type: 'destroy', id: x.id }); }
+    // Intelligence: hand a finding to Mass Media from an open chat with them (the server ignores it for anyone else)
+    const lk = $c('chleak'), lb = $c('chleakbox'), isI = state.card.role === 'Intelligence' && x && x.msgs.length;
+    lk.style.display = isI ? '' : 'none'; lk.textContent = t('leakFile');
+    lb.innerHTML = isI && leakOpen ? (state.leakUsed ? `<div class="sub">${t('leakUsed')}</div>` : !(state.findings || []).length ? `<div class="sub">${t('leakNone')}</div>`
+      : `<div class="lbl">${t('leakPick')}</div>` + state.findings.map((f) => `<button class="tapopt leakpick" data-id="${f.id}">${esc(lab(f.am, f.a))} &harr; ${esc(lab(f.bm, f.b))} (${f.count})</button>`).join('')) : '';
+    lk.onclick = () => { leakOpen = !leakOpen; renderChat(); };
+    lb.querySelectorAll('.leakpick').forEach((b) => { b.onclick = () => { leakOpen = false; send({ type: 'leakfile', chat: x.id, finding: +b.dataset.id }); }; });
+  }
+}
+$c('chbtn').onclick = () => { ch.open = !ch.open; renderChat(); if (ch.open && innerWidth < 900) scrollTo(0, document.documentElement.scrollHeight); }; // phones: lift the card above the sheet
+$c('chclose').onclick = () => { ch.open = false; ch.cur = null; renderChat(); };
+$c('tabname').onclick = () => { ch.mode = 'name'; renderChat(); };
+$c('tabrole').onclick = () => { ch.mode = 'role'; renderChat(); };
+$c('asname').onclick = () => { ch.as = 'name'; renderChat(); };
+$c('asrole').onclick = () => { ch.as = 'role'; renderChat(); };
+$c('chback').onclick = () => { ch.cur = null; renderChat(); };
+$c('chconv').onclick = $c('chrows').onclick = (e) => { const r = e.target.closest('.row'); if (!r) return; ch.cur = { as: r.dataset.as || ch.as, mode: r.dataset.mode || ch.mode, key: r.dataset.k }; renderChat(); $c('chmsgs').scrollTop = 1e9; $c('chtext').focus(); };
+const sendChat = () => { const i = $c('chtext'); if (!i.value.trim() || !ch.cur) return; send({ type: 'chat', as: ch.cur.as, mode: ch.cur.mode, to: ch.cur.key, text: i.value }); i.value = ''; };
+$c('chsend').onclick = sendChat;
+$c('chtext').onkeydown = (e) => { if (e.key === 'Enter') sendChat(); };
+// sound effects (made in the browser, no files): eerie blip on an incoming chat message, alarm when DEFCON changes
+let actx;
+const ac = () => actx || (actx = new (window.AudioContext || window.webkitAudioContext)());
+document.addEventListener('click', () => ac().resume()); // browsers only allow sound after a click
+const incoming = (v) => (v && v.chats ? v.chats.reduce((n, x) => n + x.msgs.filter((m) => !m.mine).length, 0) : 0);
+function sounds(prev, next) {
+  if (!prev || prev.phase !== 'play' || next.phase !== 'play') return;
+  if (next.defcon !== prev.defcon) alarm();
+  else if (incoming(next) > incoming(prev)) eerie();
+}
+function eerie() {
+  const c = ac(), t0 = c.currentTime, out = c.createGain(), dl = c.createDelay(), fb = c.createGain();
+  out.gain.value = 0.25; dl.delayTime.value = 0.18; fb.gain.value = 0.45; // echo tail
+  out.connect(c.destination); out.connect(dl); dl.connect(fb); fb.connect(dl); dl.connect(c.destination);
+  [[880, 440, 0], [1320, 660, 0.09], [990, 330, 0.18]].forEach(([f1, f2, d]) => {
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = 'sine'; o.detune.value = 18;
+    o.frequency.setValueAtTime(f1, t0 + d); o.frequency.exponentialRampToValueAtTime(f2, t0 + d + 0.35);
+    g.gain.setValueAtTime(0.0001, t0 + d); g.gain.exponentialRampToValueAtTime(0.5, t0 + d + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.4);
+    o.connect(g); g.connect(out); o.start(t0 + d); o.stop(t0 + d + 0.45);
+  });
+  setTimeout(() => { out.disconnect(); dl.disconnect(); fb.disconnect(); }, 3000);
+}
+function alarm() {
+  const c = ac(), t0 = c.currentTime, o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
+  o.type = 'sawtooth'; f.type = 'lowpass'; f.frequency.value = 1800;
+  for (let i = 0; i < 8; i++) o.frequency.setValueAtTime(i % 2 ? 520 : 680, t0 + i * 0.25); // two-tone klaxon, 2 s
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.18, t0 + 0.05);
+  g.gain.setValueAtTime(0.18, t0 + 1.9); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 2);
+  o.connect(f); f.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + 2.05);
+}
+// DEFCON countdown (5 minutes per level), ticks locally between server updates
+let defEnd = 0;
+function paintTimer() {
+  const el = document.getElementById('dtimer'); if (!el) return;
+  const s = Math.max(0, Math.ceil((defEnd - Date.now()) / 1000));
+  el.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  el.style.color = s <= 60 ? '#ff4040' : '';
+}
+setInterval(paintTimer, 1000);
+// DEFCON strip + READY button (top of the screen, only during play)
+function renderTop() {
+  const on = !!(state && state.phase === 'play' && state.defcon);
+  document.body.classList.toggle('hasdef', on);
+  const d = document.getElementById('defcon'), r = document.getElementById('tbr');
+  d.style.display = on ? 'flex' : 'none';
+  if (!on) { r.innerHTML = ''; return; }
+  d.innerHTML = '<span class="dlbl">' + t('defcon') + '</span>' + [5, 4, 3, 2, 1].map((n) => '<span class="dl d' + n + (n === state.defcon ? ' on' : '') + '">' + n + '</span>').join('') + '<span class="dlbl" id="dtimer"></span>';
+  paintTimer();
+  r.innerHTML = state.defcon > 1
+    ? '<button id="readybtn" class="' + (state.ready ? 'isready' : '') + '">' + (state.ready ? '✓ ' : '') + t('ready') + ' ' + state.readyCount + '/' + state.readyTotal + '</button>'
+    : '<span class="dlbl">' + t('final') + '</span>';
+  const b = document.getElementById('readybtn'); if (b) b.onclick = () => send({ type: 'ready' });
+}
+document.body.insertAdjacentHTML('beforeend', '<div id="comp"></div>');
+const ROLE_IDS = ['President', 'Mass Media', 'Intelligence', 'Army General', 'Foreign Affairs', 'Designated Survivor'];
+let compOpen = false;
+$c('rolesbtn').onclick = () => { compOpen = !compOpen; render(); };
+$c('comp').onclick = (e) => { if (e.target.id === 'compclose') { compOpen = false; render(); } };
+function renderComp() {
+  const mine = state && state.card && state.card.role;
+  $c('rolesbtn').textContent = t('rolesBtn'); $c('rolesbtn').classList.toggle('on', compOpen);
+  $c('comp').classList.toggle('open', compOpen); document.body.classList.toggle('compopen', compOpen);
+  if (!compOpen) return;
+  $c('comp').innerHTML = `<div class="top"><div>${t('compTitle')}</div><span id="compclose">[X]</span></div><div class="cbody"><p class="desc">${t('compIntro')}</p>` +
+    ROLE_IDS.map((r) => `<div class="crole ${r === mine ? 'mine' : ''}"><div class="role" style="font-size:18px;margin:0">${esc(rn(r))}${r === mine ? ' <small>' + t('you') + '</small>' : ''}</div><p class="desc">${esc(TX[lang].desc[r])}</p><p class="desc">${esc(TX[lang].abil[r])}</p></div>`).join('') + '</div>';
+}
+// the top bar can wrap, so page and side panels follow its real height
+const fitBar = () => document.documentElement.style.setProperty('--tb', document.getElementById('topbar').offsetHeight + 12 + 'px');
+window.addEventListener('resize', fitBar);
+render = function () { renderMain(); renderChat(); renderTop(); renderComp(); fitBar(); };
+render();
+</script>
+</body>
+</html>
