@@ -63,6 +63,7 @@ function deal() {
   room.embDefcon = null;
   room.check = null;
   room.started = new Map();
+  room.usedLines = new Set();
   room.defcon = 5;
   room.defconEnds = Date.now() + DEFCON_MS;
   room.ready = new Set();
@@ -73,15 +74,30 @@ const TAP_MS = 30000;
 const tappable = (t) => Date.now() - t.firstAt >= TAP_MS;
 // Foreign Affairs ability: chats between the two protected players can't be wiretapped until DEFCON drops
 const sheltered = (t) => !!room.embassy && room.embassy.includes(t.a) && room.embassy.includes(t.b);
+// EN and IT lists are parallel: index i is the same line in both languages
 const BOT_SAY = {
-  en: ['Who are you really?', 'I do not trust anyone here.', 'Do you have a code?', 'Something feels off about this room.', 'Tell me what you know.', 'I think one of us is corrupt.', 'We are running out of time.', 'Can you vouch for the Survivor?'],
-  it: ['Chi sei davvero?', 'Non mi fido di nessuno qui.', 'Hai un codice?', 'Qualcosa non quadra in questa stanza.', 'Dimmi cosa sai.', 'Penso che uno di noi sia corrotto.', 'Stiamo finendo il tempo.', 'Puoi garantire per il Sopravvissuto?'],
+  en: ['Who are you really?', 'I do not trust anyone here.', 'Do you have a code?', 'Something feels off about this room.', 'Tell me what you know.', 'I think one of us is corrupt.', 'We are running out of time.', 'Can you vouch for the Survivor?',
+    'Have you spoken to the Survivor yet?', 'Someone is lying about their code.', 'Which side are you on?', 'I heard a rumor about you.', 'Keep this chat between us.', 'Who do you suspect?', 'The clock is not on our side.', 'I might know something useful.'],
+  it: ['Chi sei davvero?', 'Non mi fido di nessuno qui.', 'Hai un codice?', 'Qualcosa non quadra in questa stanza.', 'Dimmi cosa sai.', 'Penso che uno di noi sia corrotto.', 'Stiamo finendo il tempo.', 'Puoi garantire per il Sopravvissuto?',
+    'Hai già parlato con il Sopravvissuto?', 'Qualcuno mente sul proprio codice.', 'Da che parte stai?', 'Ho sentito una voce su di te.', 'Teniamo questa chat tra noi.', 'Di chi sospetti?', "L'orologio non è dalla nostra parte.", 'Forse so qualcosa di utile.'],
 };
 const BOT_REPLY = {
-  en: ['Interesting. Go on.', 'I cannot say much.', 'Why do you ask?', 'I am not the one you should worry about.', 'Maybe. Who else have you talked to?', 'I will think about it.'],
-  it: ['Interessante. Continua.', 'Non posso dire molto.', 'Perché lo chiedi?', 'Non sono io quello di cui preoccuparti.', 'Forse. Con chi altro hai parlato?', 'Ci penso su.'],
+  en: ['Interesting. Go on.', 'I cannot say much.', 'Why do you ask?', 'I am not the one you should worry about.', 'Maybe. Who else have you talked to?', 'I will think about it.',
+    'That is what they all say.', 'Prove it.', 'I would be careful with that.', 'Not here. Not now.', 'Who told you that?', 'I have heard otherwise.', 'You first.', 'Hmm. Noted.', 'I am watching the others.', 'Trust is expensive today.', 'Ask me again later.', 'That does not add up.'],
+  it: ['Interessante. Continua.', 'Non posso dire molto.', 'Perché lo chiedi?', 'Non sono io quello di cui preoccuparti.', 'Forse. Con chi altro hai parlato?', 'Ci penso su.',
+    'È quello che dicono tutti.', 'Dimostralo.', 'Starei attento con questo.', 'Non qui. Non ora.', "Chi te l'ha detto?", 'Ho sentito diversamente.', 'Prima tu.', 'Mmm. Preso nota.', "Sto tenendo d'occhio gli altri.", 'La fiducia costa cara oggi.', 'Chiedimelo più tardi.', 'Non torna.'],
 };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
+// shared pool: each line is said at most once per match by any bot (in either language);
+// replies fall back to unused openers, and when everything is used the bots go quiet
+function botLine(kind, lang) {
+  const pools = kind === 'reply' ? [['r', BOT_REPLY], ['s', BOT_SAY]] : [['s', BOT_SAY]];
+  for (const [k, lists] of pools) {
+    const free = lists.en.map((_, i) => i).filter((i) => !room.usedLines.has(k + i));
+    if (free.length) { const i = pick(free); room.usedLines.add(k + i); return lists[lang][i]; }
+  }
+  return null;
+}
 const later = (min, max, fn) => setTimeout(fn, min + Math.random() * (max - min));
 const langOf = (p) => (p.lang === 'it' ? 'it' : 'en');
 // each player can start at most 5 new chats per DEFCON (replies in existing chats are free)
@@ -101,7 +117,9 @@ function botReply(t, bot) {
   const human = t.a === bot ? t.b : t.a;
   later(2000, 5000, () => {
     if (room.phase !== 'play' || !room.chats.includes(t)) return;
-    t.msgs.push({ from: bot, text: pick(BOT_REPLY[langOf(human)]) });
+    const text = botLine('reply', langOf(human));
+    if (!text) return;
+    t.msgs.push({ from: bot, text });
     broadcast();
   });
 }
@@ -113,8 +131,10 @@ setInterval(() => {
   const bot = pick(bots), human = pick(humans);
   if (chatsLeft(bot) <= 0) return;
   if (room.chats.some((c) => (c.a === bot && c.b === human) || (c.a === human && c.b === bot))) return;
+  const text = botLine('say', langOf(human));
+  if (!text) return;
   const t = threadFor(bot, human, pick(['name', 'role']), human.role === SURVIVOR ? 'name' : pick(['name', 'role'])); // nobody can address the Survivor by role
-  t.msgs.push({ from: bot, text: pick(BOT_SAY[langOf(human)]) });
+  t.msgs.push({ from: bot, text });
   broadcast();
 }, 6000);
 // each side of a chat picks how it shows up (name or role): t.am for side a, t.bm for side b
