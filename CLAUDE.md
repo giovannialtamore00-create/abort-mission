@@ -13,15 +13,15 @@ Built and tested with scripts (+ browser for older parts): lobby/host/join with 
 Added this session (scripts only, not seen in a browser yet): bots reply to and start chats; DESTROY CHAT (both sides, before the 30 s wiretap timer); wiretap at 30 s and once per DEFCON; Survivor always human; music volume halved at every slider point; Intelligence LEAK FILE to Mass Media; Mass Media PUBLISH (only leaked files, redactions, once per DEFCON); President passive (always redacted in leaks). Details in docs/game-design.md.
 Later: one code attempt only (wrong code = game over, "WRONG CODE — NUKES HIT" screen; tested by bot sim, not in a browser). Survivor can only send as name and cannot be addressed by role (server-enforced; script + browser checked on spare ports). Foreign Affairs EMBASSY ability (IT name "Ministro degli Esteri"; script test 11/11 + browser panel check). Survivor CODE CHECK once per match (script 16/16 + browser). Bot sim results in docs/game-design.md.
 Newest (2026-10-11): CODE CHECK unlocks at DEFCON 4, COMMIT console unlocks at DEFCON 3, max 5 new chats per player per DEFCON (was 3), roles panel renamed UNREDACTED FILES (script 11/11 + browser check of lock text). Then: 5-min timer per DEFCON (runs out = drop; at DEFCON 1 = NUKES HIT), eerie sound on incoming chat message, alarm on DEFCON change (script + browser checked). Bot sim results predate all of this.
-- LIVE SERVER (port 3000) is OLD: it has none of the server changes from tonight or the previous session (send-as chat, names for all, etc.), while the page is new, so chat is broken for anyone who refreshes. Restart it only when the room is empty or user says so, then friends refresh.
+- LIVE SERVER (port 3000) restarted 2026-10-11 with all current code (commit M1); room was empty. Restart again after any server.js change (only when room is empty or user says so).
 - Tunnel: cloudflared at `C:Program Files (x86)cloudflaredcloudflared.exe` (not on PATH), `tunnel --url http://localhost:3000`, log in tunnel.log. Last link: https://anybody-supported-brake-freeze.trycloudflare.com (changes on restart).
 - Music file `public/music.m4a`: origin unconfirmed. Cannot listen to audio.
-- Old test servers may still run on ports 3001, 3002, 3003, 3010 (this session's 3020-3024 were stopped). Ask before killing any node you did not start.
+- Old test servers may still run on ports 3001, 3002, 3003, 3010 (4 extra node.exe processes seen). Two cloudflared tunnels to 3000 are running (PIDs 8392, 29752); only one is needed (this session's 3020-3024 were stopped). Ask before killing any node you did not start.
 - Committed locally in git (no remote backup).
 
 ## Next step
 1. Browser check of the new UI (destroy button, PUBLISH, LEAK FILE, LEAKS box) on a spare port with 4 tabs.
-2. Restart live server (with user OK), friends refresh, playtest (verdict green/yellow/red).
+2. Friends open the link, playtest (verdict green/yellow/red).
 3. Improve bot strategies (see "Deductions from the sims" in docs/game-design.md), rerun sim with CODE CHECK. Open questions in docs/game-design.md (bot lines, Media leaking own chats, DEFCON 1 ending, etc.); next role ability (Army General).
 
 ## Known mistakes
