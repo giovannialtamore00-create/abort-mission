@@ -54,6 +54,7 @@ Top strip DEFCON 5 4 3 2 1 (starts at 5). READY button top-right with count. Whe
 
 ## Match chat log (for training bots)
 - Every match writes `logs/match-<UTC time>.jsonl`, one JSON line per event: `start` (each player's leader name, role, corrupt, bot, lang, code), `msg` (chat id, DEFCON, sender + recipient name/role/bot, `as` = name or role, text), `destroy` (chat id), `end` (DISARMED / FAILED / TIMEOUT / CLOSED / EVERYONE LEFT).
+- After the match, the end screen shows ALL MATCH CHATS to everyone: every chat with real names and roles, destroyed ones marked DESTROYED.
 - Destroyed chats stay in the log. `logs/` is git-ignored (friends' private chats).
 
 ## Open questions

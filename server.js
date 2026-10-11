@@ -15,7 +15,7 @@ const ROLES = {
   [SURVIVOR]: 'Only one left to act. Find 2 working codes and enter them on the console. Never corrupt, never holds a code.',
 };
 
-const room = { phase: 'lobby', players: [], host: null, result: null, attempts: 0, chats: [], chatSeq: 0, leaks: [], findings: [], files: [], fileSeq: 0, leakDefcon: null, pubDefcon: null, tap: null, embassy: null, embDefcon: null, check: null, defcon: 5, ready: new Set(), started: new Map() };
+const room = { phase: 'lobby', players: [], host: null, result: null, attempts: 0, chats: [], allChats: [], chatSeq: 0, leaks: [], findings: [], files: [], fileSeq: 0, leakDefcon: null, pubDefcon: null, tap: null, embassy: null, embDefcon: null, check: null, defcon: 5, ready: new Set(), started: new Map() };
 
 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const LEADERS = [
@@ -132,7 +132,7 @@ const findThread = (me, other, as, mode) => room.chats.find((c) => (c.a === me &
 // find the thread for this pair + modes, or create it (counts toward the starter's limit)
 function threadFor(me, other, as, mode) {
   let t = findThread(me, other, as, mode);
-  if (!t) { room.started.set(me, (room.started.get(me) || 0) + 1); t = { id: ++room.chatSeq, a: me, b: other, am: as, bm: mode, msgs: [], firstAt: Date.now(), kill: new Set() }; room.chats.push(t); setTimeout(broadcast, TAP_MS + 100); }
+  if (!t) { room.started.set(me, (room.started.get(me) || 0) + 1); t = { id: ++room.chatSeq, a: me, b: other, am: as, bm: mode, msgs: [], firstAt: Date.now(), kill: new Set() }; room.chats.push(t); room.allChats.push(t); setTimeout(broadcast, TAP_MS + 100); }
   return t;
 }
 // both sides pressed destroy in time: the chat is gone
@@ -269,6 +269,9 @@ function viewFor(p) {
   }
   if (room.phase === 'ended') {
     v.reveal = room.players.map((x) => ({ name: x.name, ...cardOf(x), real: x.realCode }));
+    // post-match: every chat of the match, with real names and roles, destroyed ones included
+    v.chatLog = room.allChats.filter((t) => t.msgs.length).map((t) => ({ a: { name: t.a.name, role: t.a.role }, b: { name: t.b.name, role: t.b.role },
+      destroyed: !room.chats.includes(t), msgs: t.msgs.map((m) => ({ a: m.from === t.a, text: m.text })) }));
   }
   return v;
 }
@@ -300,7 +303,7 @@ function onMessage(ws, msg) {
   }
   if (!me) return;
   const isHost = room.host === me;
-  if (msg.type === 'start' && isHost && room.phase === 'lobby') { deal(); startLog(); broadcast(); }
+  if (msg.type === 'start' && isHost && room.phase === 'lobby') { deal(); room.allChats = []; startLog(); broadcast(); }
   else if (msg.type === 'pause' && isHost && room.phase === 'play') {
     // host only: freeze or resume the DEFCON timer
     if (room.pausedLeft != null) { room.defconEnds = Date.now() + room.pausedLeft; room.pausedLeft = null; }
