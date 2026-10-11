@@ -29,7 +29,8 @@ const code4 =() => String(Math.floor(Math.random() * 10000)).padStart(4, '0');
 function deal() {
   const humans = room.players.filter((p) => !p.isBot);
   room.players = humans;
-  while (room.players.length < SEATS) room.players.push({ name: 'Bot', isBot: true, ws: null });
+  // half the bots type all lowercase, the rest capitalise the first letter
+  while (room.players.length < SEATS) room.players.push({ name: 'Bot', isBot: true, ws: null, lower: Math.random() < 0.5 });
   // everyone (humans and bots) gets a random leader name; the typed name is kept only to recognise reconnects
   const names = shuffle(LEADERS);
   room.players.forEach((p) => { if (!p.isBot && !p.joinName) p.joinName = p.name; p.name = names.pop(); });
@@ -99,6 +100,23 @@ function botLine(kind, lang) {
   }
   return null;
 }
+// make a bot line look typed by a person: sometimes informal, sometimes a typo, casing per bot
+const INFORMAL = {
+  en: [[/\bI am\b/g, "I'm"], [/\bdo not\b/g, "don't"], [/\bdoes not\b/g, "doesn't"], [/\bcannot\b/g, "can't"], [/\bThat is\b/g, "That's"], [/\bWho are\b/g, 'who r'], [/\byou\b/g, 'u'], [/\bWe are\b/g, "We're"], [/\bI will\b/g, "I'll"], [/\bI would\b/g, "I'd"]],
+  it: [[/\bnon\b/gi, 'nn'], [/\bperché\b/gi, 'xké'], [/\bche\b/g, 'ke'], [/\bcomunque\b/g, 'cmq'], [/\bqualcosa\b/g, 'qlcs'], [/\bper\b/g, 'x']],
+};
+function typo(text) {
+  const words = text.split(' '), idx = words.map((w, i) => i).filter((i) => /^[\p{L}]{4,}$/u.test(words[i]));
+  if (!idx.length) return text;
+  const i = pick(idx), w = words[i], j = 1 + Math.floor(Math.random() * (w.length - 2));
+  words[i] = Math.random() < 0.5 ? w.slice(0, j) + w[j + 1] + w[j] + w.slice(j + 2) : w.slice(0, j) + w[j] + w.slice(j); // swap two letters or double one
+  return words.join(' ');
+}
+function humanize(text, bot, lang) {
+  if (Math.random() < 0.4) { for (const [re, to] of INFORMAL[lang]) text = text.replace(re, to); text = text.replace(/\.$/, ''); }
+  if (Math.random() < 0.15) text = typo(text);
+  return bot.lower ? text.toLowerCase() : text[0].toUpperCase() + text.slice(1);
+}
 const later = (min, max, fn) => setTimeout(fn, min + Math.random() * (max - min));
 const langOf = (p) => (p.lang === 'it' ? 'it' : 'en');
 // each player can start at most 5 new chats per DEFCON (replies in existing chats are free)
@@ -113,14 +131,16 @@ function threadFor(me, other, as, mode) {
 }
 // both sides pressed destroy in time: the chat is gone
 function finishKill(t) { if (t.kill.has(t.a) && t.kill.has(t.b)) room.chats = room.chats.filter((c) => c !== t); }
-// bots answer every message sent to them, a few seconds later
+// bots skip about 1 message in 4; otherwise they answer after 2-6 s, or sometimes 8-20 s
 function botReply(t, bot) {
   const human = t.a === bot ? t.b : t.a;
-  later(2000, 5000, () => {
+  if (Math.random() < 0.25) return;
+  const [min, max] = Math.random() < 0.3 ? [8000, 20000] : [2000, 6000];
+  later(min, max, () => {
     if (room.phase !== 'play' || !room.chats.includes(t)) return;
     const text = botLine('reply', langOf(human));
     if (!text) return;
-    t.msgs.push({ from: bot, text });
+    t.msgs.push({ from: bot, text: humanize(text, bot, langOf(human)) });
     broadcast();
   });
 }
@@ -135,7 +155,7 @@ setInterval(() => {
   const text = botLine('say', langOf(human));
   if (!text) return;
   const t = threadFor(bot, human, pick(['name', 'role']), human.role === SURVIVOR ? 'name' : pick(['name', 'role'])); // nobody can address the Survivor by role
-  t.msgs.push({ from: bot, text });
+  t.msgs.push({ from: bot, text: humanize(text, bot, langOf(human)) });
   broadcast();
 }, 6000);
 // each side of a chat picks how it shows up (name or role): t.am for side a, t.bm for side b
