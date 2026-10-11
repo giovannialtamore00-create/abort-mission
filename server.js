@@ -155,12 +155,12 @@ function addMsg(t, from, text) {
   const to = from === t.a ? t.b : t.a;
   matchLog({ ev: 'msg', chat: t.id, from: from.name, fromRole: from.role, fromBot: from.isBot, as: sideMode(t, from), to: to.name, toRole: to.role, toBot: to.isBot, text });
 }
-// corrupt bots skip about 1 message in 4; replies come after 2-6 s, or sometimes 8-20 s
+// bots never ignore: they answer after a random 5-30 s; each new message restarts that wait with a new random delay
 function botReply(t, bot) {
   const human = t.a === bot ? t.b : t.a;
-  if (bot.corrupt && Math.random() < 0.25) return; // only corrupt bots ignore; loyal bots need the Survivor, so they always answer (maybe late)
-  const [min, max] = Math.random() < 0.3 ? [8000, 20000] : [2000, 6000];
-  later(min, max, () => {
+  clearTimeout(t.botTimer);
+  t.botTimer = later(5000, 30000, () => {
+    t.botTimer = null;
     if (room.phase !== 'play' || !room.chats.includes(t)) return;
     const text = botLine('reply', langOf(human));
     if (!text) return;
@@ -180,7 +180,7 @@ setInterval(() => {
   let t, text;
   if (old.length) {
     t = pick(old);
-    if (Date.now() - (t.botAt || 0) < 20000) return;
+    if (t.botTimer || Date.now() - (t.botAt || 0) < 20000) return; // no update while a reply is pending
     text = botLine('update', langOf(human));
     if (!text) return;
     t.kill.clear(); // a new message cancels any destroy requests
