@@ -71,7 +71,7 @@ function deal() {
   room.ready = new Set();
 }
 
-// a chat can be wiretapped 30 seconds after its first message; until then both sides can destroy it together
+// a chat can be wiretapped 30 seconds after its first message; both sides together can destroy it at any time
 const TAP_MS = 30000;
 const tappable = (t) => Date.now() - t.firstAt >= TAP_MS;
 // Foreign Affairs ability: chats between the two protected players can't be wiretapped until DEFCON drops
@@ -89,11 +89,18 @@ const BOT_REPLY = {
   it: ['Interessante. Continua.', 'Non posso dire molto.', 'Perché lo chiedi?', 'Non sono io quello di cui preoccuparti.', 'Forse. Con chi altro hai parlato?', 'Ci penso su.',
     'È quello che dicono tutti.', 'Dimostralo.', 'Starei attento con questo.', 'Non qui. Non ora.', "Chi te l'ha detto?", 'Ho sentito diversamente.', 'Prima tu.', 'Mmm. Preso nota.', "Sto tenendo d'occhio gli altri.", 'La fiducia costa cara oggi.', 'Chiedimelo più tardi.', 'Non torna.'],
 };
+// follow-ups a bot posts on its own in a chat that already exists
+const BOT_UPDATE = {
+  en: ['Any news?', 'Still there?', 'Update: I talked to someone. Not sure about them.', 'Things are moving fast. Stay sharp.', 'I changed my mind about something.', 'Did you hear anything new?',
+    'Someone just asked me about you.', 'Forget what I said before.', 'I am getting worried.', 'Back again. What did I miss?', 'The others are acting strange.', 'Keep me posted.'],
+  it: ['Novità?', 'Ci sei ancora?', 'Aggiornamento: ho parlato con qualcuno. Non mi convince.', 'Le cose si muovono in fretta. Stai attento.', 'Ho cambiato idea su una cosa.', 'Hai sentito qualcosa di nuovo?',
+    'Qualcuno mi ha appena chiesto di te.', 'Dimentica quello che ho detto prima.', 'Sto iniziando a preoccuparmi.', 'Eccomi di nuovo. Cosa mi sono perso?', 'Gli altri si comportano in modo strano.', 'Tienimi aggiornato.'],
+};
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 // shared pool: each line is said at most once per match by any bot (in either language);
 // replies fall back to unused openers, and when everything is used the bots go quiet
 function botLine(kind, lang) {
-  const pools = kind === 'reply' ? [['r', BOT_REPLY], ['s', BOT_SAY]] : [['s', BOT_SAY]];
+  const pools = kind === 'reply' ? [['r', BOT_REPLY], ['s', BOT_SAY]] : kind === 'update' ? [['u', BOT_UPDATE]] : [['s', BOT_SAY]];
   for (const [k, lists] of pools) {
     const free = lists.en.map((_, i) => i).filter((i) => !room.usedLines.has(k + i));
     if (free.length) { const i = pick(free); room.usedLines.add(k + i); return lists[lang][i]; }
@@ -140,24 +147,36 @@ function botReply(t, bot) {
     if (room.phase !== 'play' || !room.chats.includes(t)) return;
     const text = botLine('reply', langOf(human));
     if (!text) return;
+    t.botAt = Date.now();
     t.msgs.push({ from: bot, text: humanize(text, bot, langOf(human)) });
     broadcast();
   });
 }
-// every few seconds a bot may start a chat with a human it has not talked to yet
+// every few seconds a bot may start a chat with a human it has not talked to yet,
+// or post an update in an old chat with them (at most once every 20 s per chat)
 setInterval(() => {
-  if (room.phase !== 'play' || Math.random() > 0.3) return;
+  if (room.phase !== 'play' || Math.random() > 0.45) return;
   const bots = room.players.filter((x) => x.isBot), humans = room.players.filter((x) => !x.isBot && x.ws);
   if (!bots.length || !humans.length) return;
   const bot = pick(bots), human = pick(humans);
-  if (chatsLeft(bot) <= 0) return;
-  if (room.chats.some((c) => (c.a === bot && c.b === human) || (c.a === human && c.b === bot))) return;
-  const text = botLine('say', langOf(human));
-  if (!text) return;
-  const t = threadFor(bot, human, pick(['name', 'role']), human.role === SURVIVOR ? 'name' : pick(['name', 'role'])); // nobody can address the Survivor by role
+  const old = room.chats.filter((c) => (c.a === bot && c.b === human) || (c.a === human && c.b === bot));
+  let t, text;
+  if (old.length) {
+    t = pick(old);
+    if (Date.now() - (t.botAt || 0) < 20000) return;
+    text = botLine('update', langOf(human));
+    if (!text) return;
+    t.kill.clear(); // a new message cancels any destroy requests
+  } else {
+    if (chatsLeft(bot) <= 0) return;
+    text = botLine('say', langOf(human));
+    if (!text) return;
+    t = threadFor(bot, human, pick(['name', 'role']), human.role === SURVIVOR ? 'name' : pick(['name', 'role'])); // nobody can address the Survivor by role
+  }
+  t.botAt = Date.now();
   t.msgs.push({ from: bot, text: humanize(text, bot, langOf(human)) });
   broadcast();
-}, 6000);
+}, 4000);
 // each side of a chat picks how it shows up (name or role): t.am for side a, t.bm for side b
 const sideMode = (t, x) => (x === t.a ? t.am : t.bm);
 const sideLabel = (t, x) => (sideMode(t, x) === 'name' ? x.name : x.role);
@@ -199,7 +218,7 @@ function viewFor(p) {
     // private chats: threads are per unordered pair + mode; labels follow the mode (name or role)
     v.chats = room.chats.filter((t) => t.a === p || t.b === p).map((t) => {
       const o = t.a === p ? t.b : t.a;
-      return { id: t.id, canKill: !tappable(t), killMine: t.kill.has(p), killOther: t.kill.has(o), as: sideMode(t, p), mode: sideMode(t, o), with: sideLabel(t, o),
+      return { id: t.id, canKill: true,killMine: t.kill.has(p), killOther: t.kill.has(o), as: sideMode(t, p), mode: sideMode(t, o), with: sideLabel(t, o),
         msgs: t.msgs.map((m) => ({ mine: m.from === p, label: sideLabel(t, m.from), lm: sideMode(t, m.from), text: m.text })) };
     });
     // names and roles are sent as separate lists so they can't be matched up
@@ -304,10 +323,10 @@ function onMessage(ws, msg) {
     if (other.isBot) botReply(t, other);
   } else if (msg.type === 'destroy' && room.phase === 'play') {
     const t = room.chats.find((c) => c.id === msg.id && (c.a === me || c.b === me));
-    if (!t || tappable(t)) return; // too late: the wiretap window is open
+    if (!t) return; // allowed any time; what Intelligence already wiretapped stays in their findings
     const other = t.a === me ? t.b : t.a;
     if (t.kill.has(me)) t.kill.delete(me); else t.kill.add(me);
-    if (other.isBot && t.kill.has(me)) later(2000, 4000, () => { if (room.chats.includes(t) && !tappable(t) && t.kill.has(me)) { t.kill.add(other); finishKill(t); broadcast(); } });
+    if (other.isBot && t.kill.has(me)) later(2000, 4000, () => { if (room.chats.includes(t) && t.kill.has(me)) { t.kill.add(other); finishKill(t); broadcast(); } });
     finishKill(t);
     broadcast();
   } else if (msg.type === 'leakfile' && room.phase === 'play' && me.role === 'Intelligence' && room.leakDefcon !== room.defcon) {
