@@ -106,7 +106,7 @@ const TX = {
     chat: 'CHAT', chatTitle: 'PRIVATE CHAT', byName: 'BY NAME', byRole: 'BY ROLE', back: '< BACK', placeholder: 'message...', sendBtn: 'SEND',
     msg: 'msg', fresh: 'new', to: 'TO', youLbl: 'you', modeName: 'name', modeRole: 'role', sendAs: 'SEND AS', convos: 'CONVERSATIONS', newMsg: 'NEW MESSAGE', asLbl: 'as',
     empty: 'No messages yet. Sending the first one starts this chat.', left: (n) => `${n}/5 new chats left this DEFCON`, noLeft: 'No new chats left this DEFCON. Reply in your open chats or wait for DEFCON to drop.',
-    ready: 'READY', defcon: 'DEFCON', final: 'FINAL STAGE',
+    ready: 'READY', defcon: 'DEFCON', final: 'FINAL STAGE', pause: 'PAUSE', resume: 'RESUME', paused: 'PAUSED',
     rolesBtn: 'ROLES', compTitle: 'UNREDACTED FILES', compIntro: 'Two of the five roles besides the Designated Survivor are secretly corrupt. The Survivor is never corrupt.',
     abil: {
       'President': 'Passive: your name and role are always redacted in published leaks.', 'Mass Media': 'Ability: PUBLISH — leak an extract of one of your chats to everyone, once per DEFCON. You can redact parts of it, even who leaked it.', 'Army General': 'Ability: none yet.', 'Foreign Affairs': 'Ability: EMBASSY — pick two players: their chats cannot be wiretapped until DEFCON drops. Once per DEFCON.',
@@ -139,7 +139,7 @@ const TX = {
     chat: 'CHAT', chatTitle: 'CHAT PRIVATA', byName: 'PER NOME', byRole: 'PER RUOLO', back: '< INDIETRO', placeholder: 'messaggio...', sendBtn: 'INVIA',
     msg: 'msg', fresh: 'nuova', to: 'A', youLbl: 'tu', modeName: 'nome', modeRole: 'ruolo', sendAs: 'INVIA COME', convos: 'CONVERSAZIONI', newMsg: 'NUOVO MESSAGGIO', asLbl: 'come',
     empty: 'Nessun messaggio. Il primo messaggio avvia la chat.', left: (n) => `${n}/5 nuove chat rimaste in questo DEFCON`, noLeft: 'Nessuna nuova chat rimasta in questo DEFCON. Rispondi nelle chat aperte o aspetta il calo del DEFCON.',
-    ready: 'PRONTO', defcon: 'DEFCON', final: 'FASE FINALE',
+    ready: 'PRONTO', defcon: 'DEFCON', final: 'FASE FINALE', pause: 'PAUSA', resume: 'RIPRENDI', paused: 'IN PAUSA',
     rolesBtn: 'RUOLI', compTitle: 'FILE NON CENSURATI', compIntro: 'Due dei cinque ruoli oltre al Sopravvissuto Designato sono segretamente corrotti. Il Sopravvissuto non è mai corrotto.',
     abil: {
       'President': 'Passiva: il tuo nome e ruolo sono sempre oscurati nelle fughe di notizie pubblicate.', 'Mass Media': 'Abilità: PUBBLICA — diffondi a tutti un estratto di una tua chat, una volta per DEFCON. Puoi oscurare parti, anche chi ha fatto la fuga di notizie.', 'Army General': 'Abilità: nessuna per ora.', 'Foreign Affairs': 'Abilità: AMBASCIATA — scegli due giocatori: le loro chat non possono essere intercettate fino al calo del DEFCON. Una volta per DEFCON.',
@@ -455,8 +455,8 @@ function alarm() {
 let defEnd = 0;
 function paintTimer() {
   const el = document.getElementById('dtimer'); if (!el) return;
-  const s = Math.max(0, Math.ceil((defEnd - Date.now()) / 1000));
-  el.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  const s = Math.max(0, Math.ceil((state.paused ? state.defconLeft : defEnd - Date.now()) / 1000)); // frozen while paused
+  el.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + (state.paused ? ' ' + t('paused') : '');
   el.style.color = s <= 60 ? '#ff4040' : '';
 }
 setInterval(paintTimer, 1000);
@@ -472,6 +472,8 @@ function renderTop() {
   r.innerHTML = state.defcon > 1
     ? '<button id="readybtn" class="' + (state.ready ? 'isready' : '') + '">' + (state.ready ? '✓ ' : '') + t('ready') + ' ' + state.readyCount + '/' + state.readyTotal + '</button>'
     : '<span class="dlbl">' + t('final') + '</span>';
+  if (state.host) d.insertAdjacentHTML('beforeend', '<button id="pausebtn" style="width:auto;margin:0;padding:4px 10px;font-size:13px">' + t(state.paused ? 'resume' : 'pause') + '</button>'); // host only
+  const pb = document.getElementById('pausebtn'); if (pb) pb.onclick = () => send({ type: 'pause' });
   const b = document.getElementById('readybtn'); if (b) b.onclick = () => send({ type: 'ready' });
 }
 document.body.insertAdjacentHTML('beforeend', '<div id="comp"></div>');

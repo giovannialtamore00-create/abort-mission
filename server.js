@@ -66,6 +66,7 @@ function deal() {
   room.usedLines = new Set();
   room.defcon = 5;
   room.defconEnds = Date.now() + DEFCON_MS;
+  room.pausedLeft = null; // ms left while the host has the timer paused
   room.ready = new Set();
 }
 
@@ -143,14 +144,14 @@ const sideLabel = (t, x) => (sideMode(t, x) === 'name' ? x.name : x.role);
 
 // a round ends when every connected human is ready or its 5 minutes run out; DEFCON counts down 5 -> 1
 const DEFCON_MS = (+process.env.DEFCON_SEC || 300) * 1000; // DEFCON_SEC only for quick tests
-function dropDefcon() { room.defcon--; room.ready.clear(); room.tap = null; room.embassy = null; room.started = new Map(); room.defconEnds = Date.now() + DEFCON_MS; }
+function dropDefcon() { room.defcon--; room.ready.clear(); room.tap = null; room.embassy = null; room.started = new Map(); room.defconEnds = Date.now() + DEFCON_MS; if (room.pausedLeft != null) room.pausedLeft = DEFCON_MS; }
 function advanceIfReady() {
   const humans = room.players.filter((x) => !x.isBot && x.ws);
   if (room.phase === 'play' && room.defcon > 1 && humans.length && humans.every((x) => room.ready.has(x))) dropDefcon();
 }
 // time's up: DEFCON drops; at DEFCON 1 the nukes hit
 setInterval(() => {
-  if (room.phase !== 'play' || Date.now() < room.defconEnds) return;
+  if (room.phase !== 'play' || room.pausedLeft != null || Date.now() < room.defconEnds) return;
   if (room.defcon > 1) dropDefcon(); else { room.phase = 'ended'; room.result = 'TIMEOUT'; }
   broadcast();
 }, 1000);
@@ -186,7 +187,8 @@ function viewFor(p) {
     v.chatRoles = Object.keys(ROLES).filter((r) => r !== p.role && r !== SURVIVOR);
     const humans = room.players.filter((x) => !x.isBot && x.ws);
     v.defcon = room.defcon;
-    v.defconLeft = Math.max(0, room.defconEnds - Date.now()); // ms left, so client clocks don't matter
+    v.defconLeft = room.pausedLeft != null ? room.pausedLeft : Math.max(0, room.defconEnds - Date.now()); // ms left, so client clocks don't matter
+    v.paused = room.pausedLeft != null;
     v.chatsLeft = chatsLeft(p);
     v.leaks = room.leaks;
     if (p.role === 'Mass Media') {
@@ -243,7 +245,12 @@ function onMessage(ws, msg) {
   if (!me) return;
   const isHost = room.host === me;
   if (msg.type === 'start' && isHost && room.phase === 'lobby') { deal(); broadcast(); }
-  else if (msg.type === 'newgame' && isHost) {
+  else if (msg.type === 'pause' && isHost && room.phase === 'play') {
+    // host only: freeze or resume the DEFCON timer
+    if (room.pausedLeft != null) { room.defconEnds = Date.now() + room.pausedLeft; room.pausedLeft = null; }
+    else room.pausedLeft = Math.max(0, room.defconEnds - Date.now());
+    broadcast();
+  } else if (msg.type === 'newgame' && isHost) {
     room.players = room.players.filter((p) => !p.isBot);
     room.players.forEach((p) => { delete p.role; p.name = p.joinName || p.name; });
     room.phase = 'lobby'; room.result = null; room.chats = []; room.tap = null; room.embassy = null; room.defcon = 5; room.ready = new Set(); broadcast();
