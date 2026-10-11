@@ -29,8 +29,7 @@ const code4 =() => String(Math.floor(Math.random() * 10000)).padStart(4, '0');
 function deal() {
   const humans = room.players.filter((p) => !p.isBot);
   room.players = humans;
-  // half the bots type all lowercase, the rest capitalise the first letter
-  while (room.players.length < SEATS) room.players.push({ name: 'Bot', isBot: true, ws: null, lower: Math.random() < 0.5 });
+  while (room.players.length < SEATS) room.players.push({ name: 'Bot', isBot: true, ws: null });
   // everyone (humans and bots) gets a random leader name; the typed name is kept only to recognise reconnects
   const names = shuffle(LEADERS);
   room.players.forEach((p) => { if (!p.isBot && !p.joinName) p.joinName = p.name; p.name = names.pop(); });
@@ -107,7 +106,7 @@ function botLine(kind, lang) {
   }
   return null;
 }
-// make a bot line look typed by a person: sometimes informal, sometimes a typo, casing per bot
+// make a bot line look typed by a person: sometimes informal, sometimes a typo, random casing per message
 const INFORMAL = {
   en: [[/\bI am\b/g, "I'm"], [/\bdo not\b/g, "don't"], [/\bdoes not\b/g, "doesn't"], [/\bcannot\b/g, "can't"], [/\bThat is\b/g, "That's"], [/\bWho are\b/g, 'who r'], [/\byou\b/g, 'u'], [/\bWe are\b/g, "We're"], [/\bI will\b/g, "I'll"], [/\bI would\b/g, "I'd"]],
   it: [[/\bnon\b/gi, 'nn'], [/\bperché\b/gi, 'xké'], [/\bche\b/g, 'ke'], [/\bcomunque\b/g, 'cmq'], [/\bqualcosa\b/g, 'qlcs'], [/\bper\b/g, 'x']],
@@ -122,7 +121,7 @@ function typo(text) {
 function humanize(text, bot, lang) {
   if (Math.random() < 0.4) { for (const [re, to] of INFORMAL[lang]) text = text.replace(re, to); text = text.replace(/\.$/, ''); }
   if (Math.random() < 0.15) text = typo(text);
-  return bot.lower ? text.toLowerCase() : text[0].toUpperCase() + text.slice(1);
+  return Math.random() < 0.5 ? text.toLowerCase() : text[0].toUpperCase() + text.slice(1);
 }
 const later = (min, max, fn) => setTimeout(fn, min + Math.random() * (max - min));
 const langOf = (p) => (p.lang === 'it' ? 'it' : 'en');
