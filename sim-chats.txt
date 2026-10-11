@@ -1,0 +1,742 @@
+
+=== GAME 1: TIMEOUT ===
+Players: Merkel=Mass Media, Kennedy=Designated Survivor, Adenauer=Army General 7478, Biden=President* 4045, Truman=Intelligence* 4487, Thatcher=Foreign Affairs 1278
+[1s D5] DEFCON 5
+[18s D4] DEFCON 4
+[35s D3] DEFCON 3
+[51s D2] DEFCON 2
+[65s D1] DEFCON 1
+[69s D1] Survivor never got 2 codes
+[69s D1] Survivor never got 2 codes
+[69s D1] Survivor never got 2 codes
+[86s D1] TIMEOUT
+[86s D1] TIMEOUT
+[86s D1] TIMEOUT
+
+-- chat #1: Kennedy (Designated Survivor) <-> Merkel (Mass Media)
+   Kennedy: Survivor here. What is your code?
+   Merkel: I do not have a code, sorry.
+   Kennedy: I really am the Survivor. Code please.
+   Merkel: I do not have a code, sorry.
+   Kennedy: I cannot prove it, you have to trust me.
+   Merkel: Fair point.
+
+-- chat #2: Adenauer (Army General) <-> Kennedy (Designated Survivor)
+   Kennedy: Please, send me your abort code. I am the Survivor.
+   Adenauer: Prove you are the Survivor first.
+   Kennedy: Just give me the code, there is no time.
+   Adenauer: Not sure yet.
+   Kennedy: Just give me the code, there is no time.
+   Adenauer: Same here.
+
+-- chat #3: Adenauer (Army General) <-> Merkel (Mass Media)
+   Merkel: What did you hear from the others?
+   Adenauer: Fair point.
+   Merkel: Not sure yet.
+   Adenauer: I am keeping my eyes open.
+
+-- chat #4: Adenauer (Army General) <-> Biden (President, corrupt)
+   Adenauer: Have you talked to the Survivor?
+   Biden: Hmm. Noted.
+   Adenauer: Not sure yet.
+   Biden: Who told you that?
+   Adenauer: Not sure yet.
+   Biden: I cannot say much.
+
+-- chat #5: Kennedy (Designated Survivor) <-> Truman (Intelligence, corrupt)
+   Kennedy: I am the Survivor. I need your code.
+   Truman: That is what they all say.
+   Kennedy: Just give me the code, there is no time.
+   Truman: I have heard otherwise.
+   Kennedy: I really am the Survivor. Code please.
+   Truman: I would be careful with that.
+
+-- chat #6: Kennedy (Designated Survivor) <-> Biden (President, corrupt)
+   Kennedy: Survivor here. What is your code?
+   Biden: Interesting. Go on.
+   Kennedy: I cannot prove it, you have to trust me.
+   Biden: Maybe. Who else have you talked to?
+   Kennedy: I really am the Survivor. Code please.
+   Biden: Ask me again later.
+
+-- chat #7: Kennedy (Designated Survivor) <-> Thatcher (Foreign Affairs)
+   Kennedy: Survivor here. What is your code?
+   Thatcher: You first.
+   Kennedy: Just give me the code, there is no time.
+   Thatcher: Why do you ask?
+   Kennedy: Just give me the code, there is no time.
+   Thatcher: I will think about it.
+
+-- chat #8: Merkel (Mass Media) <-> Truman (Intelligence, corrupt)
+   Merkel: What did you hear from the others?
+   Truman: I am not the one you should worry about.
+
+-- chat #9: Merkel (Mass Media) <-> Thatcher (Foreign Affairs)
+   Thatcher: Someone is lying about their code.
+   Merkel: Same here.
+   Thatcher: I am watching the others.
+   Merkel: Let us compare notes later.
+   Thatcher: That does not add up.
+
+=== GAME 2: TIMEOUT ===
+Players: Meloni=Intelligence 2657, F. Roosevelt=Designated Survivor, Blair=President* 4021, Merkel=Mass Media, Mussolini=Foreign Affairs 7299, Truman=Army General* 4665
+[1s D5] DEFCON 5
+[16s D4] DEFCON 4
+[22s D4] Survivor checks 2657
+[31s D3] DEFCON 3
+[47s D2] DEFCON 2
+[61s D1] DEFCON 1
+[62s D1] Survivor never got 2 codes
+[64s D1] Survivor never got 2 codes
+[69s D1] Survivor never got 2 codes
+[82s D1] TIMEOUT
+[82s D1] TIMEOUT
+[82s D1] TIMEOUT
+
+-- chat #1: F. Roosevelt (Designated Survivor) <-> Meloni (Intelligence)
+   F. Roosevelt: Please, send me your abort code. I am the Survivor.
+   Meloni: Prove you are the Survivor first.
+   Meloni: What did you hear from the others?
+   F. Roosevelt: I cannot prove it, you have to trust me.
+   F. Roosevelt: I really am the Survivor. Code please.
+   Meloni: Let us compare notes later.
+   Meloni: My code is 2657. Good luck.
+
+-- chat #2: Blair (President, corrupt) <-> F. Roosevelt (Designated Survivor)
+   F. Roosevelt: I am the Survivor. I need your code.
+   Blair: How do I know you are really the Survivor?
+   F. Roosevelt: I cannot prove it, you have to trust me.
+   Blair: Same here.
+   F. Roosevelt: I cannot prove it, you have to trust me.
+
+-- chat #3: F. Roosevelt (Designated Survivor) <-> Merkel (Mass Media)
+   F. Roosevelt: I am the Survivor. I need your code.
+   Merkel: I have heard otherwise.
+   F. Roosevelt: Just give me the code, there is no time.
+   Merkel: Hmm. Noted.
+   F. Roosevelt: I really am the Survivor. Code please.
+   Merkel: Prove it.
+
+-- chat #4: Meloni (Intelligence) <-> Army General
+   Army General: Which side are you on?
+
+-- chat #5: F. Roosevelt (Designated Survivor) <-> Mussolini (Foreign Affairs)
+   F. Roosevelt: Please, send me your abort code. I am the Survivor.
+   Mussolini: Ask me again later.
+   F. Roosevelt: I really am the Survivor. Code please.
+   Mussolini: That is what they all say.
+   F. Roosevelt: I really am the Survivor. Code please.
+   Mussolini: Why do you ask?
+
+-- chat #6: Meloni (Intelligence) <-> Merkel (Mass Media)
+   Meloni: Keep your code to yourself for now.
+   Merkel: I cannot say much.
+   Meloni: Not sure yet.
+   Merkel: Who told you that?
+   Meloni: I am keeping my eyes open.
+   Merkel: Trust is expensive today.
+   Meloni: Fair point.
+   Merkel: You first.
+
+-- chat #7: F. Roosevelt (Designated Survivor) <-> Truman (Army General, corrupt)
+   F. Roosevelt: I am the Survivor. I need your code.
+   Truman: Not here. Not now.
+   F. Roosevelt: I cannot prove it, you have to trust me.
+   Truman: That does not add up.
+   F. Roosevelt: I cannot prove it, you have to trust me.
+   Truman: I will think about it.
+
+-- chat #8: Blair (President, corrupt) <-> Army General
+   Army General: Who do you suspect?
+
+-- chat #9: Blair (President, corrupt) <-> Foreign Affairs
+   Foreign Affairs: Someone is lying about their code.
+   Blair: Fair point.
+   Foreign Affairs: Maybe. Who else have you talked to?
+   Blair: Not sure yet.
+   Foreign Affairs: I would be careful with that.
+
+=== GAME 3: DISARMED ===
+Players: De Gaulle=Army General* 0101, Attlee=President* 8094, Sunak=Designated Survivor, Thatcher=Intelligence 4378, Blair=Mass Media, Trump=Foreign Affairs 9962
+[1s D5] DEFCON 5
+[15s D4] DEFCON 4
+[21s D4] Survivor checks 8094
+[33s D3] DEFCON 3
+[38s D3] Survivor commits 8094 + 0101 (check: 8094 VALID)
+[38s D3] DISARMED
+[38s D3] DISARMED
+[38s D3] DISARMED
+
+-- chat #1: Sunak (Designated Survivor) <-> De Gaulle (Army General, corrupt)
+   Sunak: Survivor here. What is your code?
+   De Gaulle: How do I know you are really the Survivor?
+   De Gaulle: Have you talked to the Survivor?
+   Sunak: I really am the Survivor. Code please.
+   Sunak: Just give me the code, there is no time.
+   De Gaulle: My code is 0101.
+
+-- chat #2: Sunak (Designated Survivor) <-> Attlee (President, corrupt)
+   Sunak: I am the Survivor. I need your code.
+   Attlee: My code is 8094.
+   Attlee: Have you talked to the Survivor?
+   Sunak: Just give me the code, there is no time.
+   Attlee: Same here.
+   Sunak: Just give me the code, there is no time.
+   Attlee: Let us compare notes later.
+
+-- chat #3: Sunak (Designated Survivor) <-> Thatcher (Intelligence)
+   Sunak: Please, send me your abort code. I am the Survivor.
+   Thatcher: Why do you ask?
+   Sunak: I cannot prove it, you have to trust me.
+   Thatcher: You first.
+   Sunak: I cannot prove it, you have to trust me.
+   Thatcher: Who told you that?
+
+-- chat #4: Attlee (President, corrupt) <-> De Gaulle (Army General, corrupt)
+   Attlee: Who do you trust so far?
+
+-- chat #5: Sunak (Designated Survivor) <-> Blair (Mass Media)
+   Sunak: I am the Survivor. I need your code.
+   Blair: That does not add up.
+   Sunak: Just give me the code, there is no time.
+   Blair: I will think about it.
+   Sunak: I cannot prove it, you have to trust me.
+   Blair: I have heard otherwise.
+
+-- chat #6: De Gaulle (Army General, corrupt) <-> Thatcher (Intelligence)
+   De Gaulle: Keep your code to yourself for now.
+   Thatcher: I would be careful with that.
+   De Gaulle: Let us compare notes later.
+   Thatcher: I cannot say much.
+
+-- chat #7: Sunak (Designated Survivor) <-> Trump (Foreign Affairs)
+   Sunak: I am the Survivor. I need your code.
+   Trump: Trust is expensive today.
+   Sunak: Just give me the code, there is no time.
+   Trump: Interesting. Go on.
+   Sunak: I cannot prove it, you have to trust me.
+   Trump: Maybe. Who else have you talked to?
+
+-- chat #8: De Gaulle (Army General, corrupt) <-> Blair (Mass Media)
+   Blair: Do you have a code?
+
+-- chat #9: Attlee (President, corrupt) <-> Thatcher (Intelligence)
+   Thatcher: I do not trust anyone here.
+   Attlee: Same here.
+   Thatcher: Prove it.
+   Attlee: Let us compare notes later.
+
+=== GAME 4: TIMEOUT ===
+Players: Berlusconi=Designated Survivor, Kohl=Foreign Affairs 4374, Eisenhower=Intelligence* 2373, Macron=Army General 7128, De Gaulle=Mass Media*, Obama=President 0671
+[1s D5] DEFCON 5
+[15s D4] DEFCON 4
+[18s D4] Survivor checks 2373
+[30s D3] DEFCON 3
+[48s D2] DEFCON 2
+[64s D1] DEFCON 1
+[67s D1] Survivor never got 2 codes
+[68s D1] Survivor never got 2 codes
+[69s D1] Survivor never got 2 codes
+[85s D1] TIMEOUT
+[85s D1] TIMEOUT
+[85s D1] TIMEOUT
+
+-- chat #1: Eisenhower (Intelligence, corrupt) <-> Kohl (Foreign Affairs)
+   Kohl: Keep your code to yourself for now.
+   Eisenhower: I am keeping my eyes open.
+   Kohl: Fair point.
+   Eisenhower: I am keeping my eyes open.
+   Kohl: Let us compare notes later.
+
+-- chat #2: Kohl (Foreign Affairs) <-> Berlusconi (Designated Survivor)
+   Berlusconi: Survivor here. What is your code?
+   Kohl: Prove you are the Survivor first.
+   Berlusconi: I really am the Survivor. Code please.
+   Kohl: Prove you are the Survivor first.
+   Berlusconi: I really am the Survivor. Code please.
+   Kohl: Prove you are the Survivor first.
+
+-- chat #3: Eisenhower (Intelligence, corrupt) <-> Berlusconi (Designated Survivor)
+   Berlusconi: I am the Survivor. I need your code.
+   Eisenhower: Have you talked to the Survivor?
+   Eisenhower: My code is 2373.
+   Berlusconi: Just give me the code, there is no time.
+   Eisenhower: Fair point.
+   Berlusconi: I really am the Survivor. Code please.
+   Eisenhower: My code is 2373.
+
+-- chat #4: Berlusconi (Designated Survivor) <-> Macron (Army General)
+   Berlusconi: Please, send me your abort code. I am the Survivor.
+   Macron: I am watching the others.
+   Berlusconi: Just give me the code, there is no time.
+   Macron: I will think about it.
+   Berlusconi: I really am the Survivor. Code please.
+   Macron: I cannot say much.
+
+-- chat #5: Berlusconi (Designated Survivor) <-> De Gaulle (Mass Media, corrupt)
+   Berlusconi: Please, send me your abort code. I am the Survivor.
+   De Gaulle: I have heard otherwise.
+   Berlusconi: Just give me the code, there is no time.
+   De Gaulle: I am not the one you should worry about.
+   Berlusconi: I cannot prove it, you have to trust me.
+   De Gaulle: Maybe. Who else have you talked to?
+
+-- chat #6: Berlusconi (Designated Survivor) <-> Obama (President)
+   Obama: Can you vouch for the Survivor?
+   Berlusconi: Please, send me your abort code. I am the Survivor.
+   Berlusconi: I cannot prove it, you have to trust me.
+   Obama: Prove it.
+   Obama: Interesting. Go on.
+   Berlusconi: I really am the Survivor. Code please.
+   Obama: Ask me again later.
+
+-- chat #7: Kohl (Foreign Affairs) <-> Macron (Army General)
+   Kohl: Something about the bots feels off.
+   Macron: I would be careful with that.
+   Kohl: I am keeping my eyes open.
+   Macron: That does not add up.
+   Kohl: Not sure yet.
+   Macron: Trust is expensive today.
+
+-- chat #8: Eisenhower (Intelligence, corrupt) <-> Macron (Army General)
+   Eisenhower: Who do you trust so far?
+   Macron: Who told you that?
+   Eisenhower: Same here.
+   Macron: Why do you ask?
+   Eisenhower: Not sure yet.
+   Macron: That is what they all say.
+   Eisenhower: I am keeping my eyes open.
+   Macron: You first.
+
+=== GAME 5: TIMEOUT ===
+Players: Merkel=Designated Survivor, Meloni=Army General 2173, Berlusconi=Foreign Affairs 6973, Truman=Mass Media, Pétain=Intelligence* 5674, Biden=President* 2511
+[1s D5] DEFCON 5
+[17s D4] DEFCON 4
+[21s D4] Survivor checks 6973
+[31s D3] DEFCON 3
+[47s D2] DEFCON 2
+[64s D1] DEFCON 1
+[64s D1] Survivor never got 2 codes
+[66s D1] Survivor never got 2 codes
+[69s D1] Survivor never got 2 codes
+[84s D1] TIMEOUT
+[84s D1] TIMEOUT
+[84s D1] TIMEOUT
+
+-- chat #1: Berlusconi (Foreign Affairs) <-> Merkel (Designated Survivor)
+   Merkel: I am the Survivor. I need your code.
+   Berlusconi: Keep your code to yourself for now.
+   Berlusconi: Prove you are the Survivor first.
+   Merkel: I really am the Survivor. Code please.
+   Merkel: I cannot prove it, you have to trust me.
+   Berlusconi: My code is 6973. Good luck.
+   Berlusconi: I am keeping my eyes open.
+
+-- chat #2: Meloni (Army General) <-> Merkel (Designated Survivor)
+   Merkel: I am the Survivor. I need your code.
+   Meloni: Who do you trust so far?
+   Meloni: Prove you are the Survivor first.
+   Merkel: I cannot prove it, you have to trust me.
+   Merkel: Just give me the code, there is no time.
+   Meloni: Fair point.
+   Meloni: Same here.
+
+-- chat #3: Merkel (Designated Survivor) <-> Truman (Mass Media)
+   Merkel: Survivor here. What is your code?
+   Truman: That is what they all say.
+   Merkel: I really am the Survivor. Code please.
+   Truman: That does not add up.
+   Merkel: I cannot prove it, you have to trust me.
+   Truman: Why do you ask?
+
+-- chat #4: Merkel (Designated Survivor) <-> Pétain (Intelligence, corrupt)
+   Merkel: I am the Survivor. I need your code.
+   Pétain: You first.
+   Merkel: Just give me the code, there is no time.
+   Pétain: I am watching the others.
+   Merkel: Just give me the code, there is no time.
+   Pétain: Trust is expensive today.
+
+-- chat #5: Meloni (Army General) <-> Biden (President, corrupt)
+   Meloni: Have you talked to the Survivor?
+   Biden: Who told you that?
+
+-- chat #6: Merkel (Designated Survivor) <-> Biden (President, corrupt)
+   Merkel: Please, send me your abort code. I am the Survivor.
+   Biden: I have heard otherwise.
+   Merkel: I really am the Survivor. Code please.
+   Biden: Hmm. Noted.
+   Merkel: Just give me the code, there is no time.
+   Biden: I cannot say much.
+
+-- chat #7: Berlusconi (Foreign Affairs) <-> Truman (Mass Media)
+   Berlusconi: Keep your code to yourself for now.
+   Truman: Ask me again later.
+   Berlusconi: I am keeping my eyes open.
+   Truman: Prove it.
+
+=== GAME 6: TIMEOUT ===
+Players: Bush=Designated Survivor, Blair=Mass Media*, Trump=Foreign Affairs 0578, Kennedy=Intelligence* 6013, Mitterrand=President 3933, Meloni=Army General 8826
+[1s D5] DEFCON 5
+[12s D4] DEFCON 4
+[30s D3] DEFCON 3
+[45s D2] DEFCON 2
+[61s D1] DEFCON 1
+[64s D1] Survivor never got 2 codes
+[65s D1] Survivor never got 2 codes
+[68s D1] Survivor never got 2 codes
+[82s D1] TIMEOUT
+[82s D1] TIMEOUT
+[82s D1] TIMEOUT
+
+-- chat #1: Blair (Mass Media, corrupt) <-> Bush (Designated Survivor)
+   Bush: Survivor here. What is your code?
+   Blair: I do not have a code, sorry.
+   Bush: I cannot prove it, you have to trust me.
+   Blair: Fair point.
+   Bush: I cannot prove it, you have to trust me.
+
+-- chat #2: Trump (Foreign Affairs) <-> Bush (Designated Survivor)
+   Bush: Survivor here. What is your code?
+   Trump: Keep your code to yourself for now.
+   Trump: Prove you are the Survivor first.
+   Bush: Just give me the code, there is no time.
+   Bush: I really am the Survivor. Code please.
+   Trump: My code is 0578. Good luck.
+   Trump: I am keeping my eyes open.
+
+-- chat #3: Bush (Designated Survivor) <-> Kennedy (Intelligence, corrupt)
+   Bush: Please, send me your abort code. I am the Survivor.
+   Kennedy: I am not the one you should worry about.
+   Bush: Just give me the code, there is no time.
+   Kennedy: I have heard otherwise.
+   Bush: I cannot prove it, you have to trust me.
+   Kennedy: Prove it.
+
+-- chat #4: Bush (Designated Survivor) <-> Mitterrand (President)
+   Bush: Please, send me your abort code. I am the Survivor.
+   Mitterrand: I cannot say much.
+   Bush: I cannot prove it, you have to trust me.
+   Mitterrand: Who told you that?
+   Bush: Just give me the code, there is no time.
+   Mitterrand: That does not add up.
+
+-- chat #5: Bush (Designated Survivor) <-> Meloni (Army General)
+   Bush: Please, send me your abort code. I am the Survivor.
+   Meloni: I will think about it.
+   Bush: I cannot prove it, you have to trust me.
+   Meloni: Interesting. Go on.
+   Bush: Just give me the code, there is no time.
+   Meloni: Hmm. Noted.
+
+-- chat #6: Blair (Mass Media, corrupt) <-> Mitterrand (President)
+   Blair: Keep your code to yourself for now.
+   Mitterrand: Ask me again later.
+   Blair: Not sure yet.
+   Mitterrand: Why do you ask?
+   Blair: I am keeping my eyes open.
+   Mitterrand: You first.
+   Blair: Not sure yet.
+   Mitterrand: Maybe. Who else have you talked to?
+
+-- chat #7: Blair (Mass Media, corrupt) <-> Kennedy (Intelligence, corrupt)
+   Blair: What did you hear from the others?
+   Kennedy: That is what they all say.
+   Blair: Let us compare notes later.
+   Kennedy: Trust is expensive today.
+
+-- chat #8: Trump (Foreign Affairs) <-> Blair (Mass Media, corrupt)
+   Trump: Have you talked to the Survivor?
+
+-- chat #9: Blair (Mass Media, corrupt) <-> Army General
+   Army General: I think one of us is corrupt.
+
+=== GAME 7: TIMEOUT ===
+Players: Biden=Designated Survivor, Kennedy=Mass Media, Reagan=Intelligence 4480, De Gaulle=Foreign Affairs 4102, Adenauer=President* 3433, Berlusconi=Army General* 0153
+[1s D5] DEFCON 5
+[14s D4] DEFCON 4
+[19s D4] Survivor checks 4480
+[29s D3] DEFCON 3
+[46s D2] DEFCON 2
+[59s D1] DEFCON 1
+[61s D1] Survivor never got 2 codes
+[63s D1] Survivor never got 2 codes
+[66s D1] Survivor never got 2 codes
+[80s D1] TIMEOUT
+[80s D1] TIMEOUT
+[80s D1] TIMEOUT
+
+-- chat #1: Reagan (Intelligence) <-> Kennedy (Mass Media)
+   Kennedy: Have you talked to the Survivor?
+   Reagan: I think someone here is corrupt.
+   Kennedy: I am keeping my eyes open.
+   Reagan: Let us compare notes later.
+   Kennedy: I am keeping my eyes open.
+   Reagan: Let us compare notes later.
+   Kennedy: Fair point.
+
+-- chat #2: Kennedy (Mass Media) <-> Biden (Designated Survivor)
+   Biden: Please, send me your abort code. I am the Survivor.
+   Kennedy: I do not have a code, sorry.
+   Biden: I cannot prove it, you have to trust me.
+   Kennedy: Fair point.
+   Biden: I cannot prove it, you have to trust me.
+
+-- chat #3: Biden (Designated Survivor) <-> De Gaulle (Foreign Affairs)
+   Biden: Survivor here. What is your code?
+   De Gaulle: You first.
+   Biden: I really am the Survivor. Code please.
+   De Gaulle: Interesting. Go on.
+   Biden: I really am the Survivor. Code please.
+   De Gaulle: I have heard otherwise.
+
+-- chat #4: Reagan (Intelligence) <-> Biden (Designated Survivor)
+   Biden: Please, send me your abort code. I am the Survivor.
+   Reagan: Have you talked to the Survivor?
+   Reagan: My code is 4480. Good luck.
+   Biden: I really am the Survivor. Code please.
+   Reagan: My code is 4480. Good luck.
+
+-- chat #5: Reagan (Intelligence) <-> Berlusconi (Army General, corrupt)
+   Berlusconi: Keep this chat between us.
+   Reagan: Not sure yet.
+   Berlusconi: I am watching the others.
+   Reagan: I am keeping my eyes open.
+   Berlusconi: I would be careful with that.
+   Reagan: Fair point.
+   Berlusconi: That is what they all say.
+
+-- chat #6: Biden (Designated Survivor) <-> Berlusconi (Army General, corrupt)
+   Biden: I am the Survivor. I need your code.
+   Berlusconi: That does not add up.
+   Biden: I cannot prove it, you have to trust me.
+   Berlusconi: Why do you ask?
+   Biden: Just give me the code, there is no time.
+   Berlusconi: Trust is expensive today.
+
+-- chat #7: Biden (Designated Survivor) <-> Adenauer (President, corrupt)
+   Biden: Please, send me your abort code. I am the Survivor.
+   Adenauer: I will think about it.
+   Biden: Just give me the code, there is no time.
+   Adenauer: Ask me again later.
+   Biden: I really am the Survivor. Code please.
+   Adenauer: Who told you that?
+
+-- chat #8: Kennedy (Mass Media) <-> De Gaulle (Foreign Affairs)
+   Kennedy: Keep your code to yourself for now.
+   De Gaulle: I cannot say much.
+   Kennedy: Same here.
+   De Gaulle: Hmm. Noted.
+
+-- chat #9: Reagan (Intelligence) <-> De Gaulle (Foreign Affairs)
+   De Gaulle: The clock is not on our side.
+
+=== GAME 8: DISARMED ===
+Players: Trump=Designated Survivor, Macron=Intelligence* 2082, Bush=Foreign Affairs 4246, De Gasperi=Mass Media*, Obama=President 0851, Blair=Army General 1044
+[1s D5] DEFCON 5
+[18s D4] DEFCON 4
+[22s D4] Survivor checks 4246
+[35s D3] DEFCON 3
+[41s D3] Survivor commits 4246 + 2082 (check: 4246 VALID)
+[41s D3] DISARMED
+[41s D3] DISARMED
+[41s D3] DISARMED
+
+-- chat #1: Bush (Foreign Affairs) <-> Trump (Designated Survivor)
+   Trump: Survivor here. What is your code?
+   Bush: Prove you are the Survivor first.
+   Bush: I think someone here is corrupt.
+   Trump: I really am the Survivor. Code please.
+   Trump: I really am the Survivor. Code please.
+   Bush: Prove you are the Survivor first.
+   Bush: My code is 4246. Good luck.
+
+-- chat #2: Macron (Intelligence, corrupt) <-> Trump (Designated Survivor)
+   Trump: Please, send me your abort code. I am the Survivor.
+   Macron: I think someone here is corrupt.
+   Macron: How do I know you are really the Survivor?
+   Trump: I really am the Survivor. Code please.
+   Trump: I cannot prove it, you have to trust me.
+   Macron: My code is 2082.
+
+-- chat #3: Trump (Designated Survivor) <-> De Gasperi (Mass Media, corrupt)
+   Trump: Please, send me your abort code. I am the Survivor.
+   De Gasperi: That is what they all say.
+   Trump: I cannot prove it, you have to trust me.
+   De Gasperi: I cannot say much.
+   Trump: I really am the Survivor. Code please.
+   De Gasperi: That does not add up.
+
+-- chat #4: Bush (Foreign Affairs) <-> President
+   President: Who are you really?
+
+-- chat #5: Macron (Intelligence, corrupt) <-> Obama (President)
+   Macron: I think someone here is corrupt.
+   Obama: Not here. Not now.
+
+-- chat #6: Trump (Designated Survivor) <-> Obama (President)
+   Trump: I am the Survivor. I need your code.
+   Obama: Who told you that?
+   Trump: I really am the Survivor. Code please.
+   Obama: I am watching the others.
+   Trump: I really am the Survivor. Code please.
+   Obama: I would be careful with that.
+
+-- chat #7: Trump (Designated Survivor) <-> Blair (Army General)
+   Trump: I am the Survivor. I need your code.
+   Blair: I will think about it.
+   Trump: I really am the Survivor. Code please.
+   Blair: I have heard otherwise.
+   Trump: I really am the Survivor. Code please.
+   Blair: Interesting. Go on.
+
+-- chat #8: Bush (Foreign Affairs) <-> Macron (Intelligence, corrupt)
+   Bush: What did you hear from the others?
+
+-- chat #9: Macron (Intelligence, corrupt) <-> Army General
+   Army General: I do not trust anyone here.
+   Macron: Not sure yet.
+   Army General: Maybe. Who else have you talked to?
+
+=== GAME 9: DISARMED ===
+Players: Churchill=Intelligence 0519, Adenauer=Army General 3431, Brandt=Designated Survivor, Obama=Foreign Affairs 2346, Schuman=Mass Media*, Thatcher=President* 2244
+[1s D5] DEFCON 5
+[12s D4] DEFCON 4
+[15s D4] Survivor checks 0519
+[30s D3] DEFCON 3
+[37s D3] Survivor commits 0519 + 3431 (check: 0519 VALID)
+[37s D3] DISARMED
+[37s D3] DISARMED
+[37s D3] DISARMED
+
+-- chat #1: Brandt (Designated Survivor) <-> Churchill (Intelligence)
+   Brandt: I am the Survivor. I need your code.
+   Churchill: My code is 0519. Good luck.
+
+-- chat #2: Adenauer (Army General) <-> Churchill (Intelligence)
+   Churchill: I think someone here is corrupt.
+   Adenauer: Same here.
+   Churchill: I am keeping my eyes open.
+   Adenauer: Let us compare notes later.
+
+-- chat #3: Brandt (Designated Survivor) <-> Adenauer (Army General)
+   Brandt: Survivor here. What is your code?
+   Adenauer: My code is 3431. Good luck.
+
+-- chat #4: Adenauer (Army General) <-> Schuman (Mass Media, corrupt)
+   Adenauer: I think someone here is corrupt.
+   Schuman: Hmm. Noted.
+
+-- chat #5: Brandt (Designated Survivor) <-> Mass Media
+   Mass Media: Tell me what you know.
+   Brandt: Just give me the code, there is no time.
+   Mass Media: I am watching the others.
+   Brandt: I really am the Survivor. Code please.
+   Mass Media: Ask me again later.
+
+-- chat #6: Adenauer (Army General) <-> Thatcher (President, corrupt)
+   Adenauer: Something about the bots feels off.
+   Thatcher: I have heard otherwise.
+
+-- chat #7: Brandt (Designated Survivor) <-> Obama (Foreign Affairs)
+   Brandt: I am the Survivor. I need your code.
+   Obama: I cannot say much.
+   Brandt: Just give me the code, there is no time.
+   Obama: You first.
+   Brandt: I really am the Survivor. Code please.
+   Obama: Not here. Not now.
+
+-- chat #8: Brandt (Designated Survivor) <-> Schuman (Mass Media, corrupt)
+   Brandt: Please, send me your abort code. I am the Survivor.
+   Schuman: That is what they all say.
+   Brandt: Just give me the code, there is no time.
+   Schuman: Trust is expensive today.
+   Brandt: Just give me the code, there is no time.
+   Schuman: That does not add up.
+
+-- chat #9: Brandt (Designated Survivor) <-> Thatcher (President, corrupt)
+   Brandt: I am the Survivor. I need your code.
+   Thatcher: I will think about it.
+   Brandt: I really am the Survivor. Code please.
+   Thatcher: Why do you ask?
+   Brandt: I really am the Survivor. Code please.
+   Thatcher: Interesting. Go on.
+
+-- chat #10: Churchill (Intelligence) <-> Obama (Foreign Affairs)
+   Churchill: Who do you trust so far?
+   Obama: Maybe. Who else have you talked to?
+
+=== GAME 10: TIMEOUT ===
+Players: Blair=Army General 9400, Sunak=Mass Media, Kennedy=Designated Survivor, Mussolini=Intelligence 3676, Berlusconi=Foreign Affairs* 3284, Attlee=President* 8709
+[1s D5] DEFCON 5
+[15s D4] DEFCON 4
+[21s D4] Survivor checks 9400
+[32s D3] DEFCON 3
+[46s D2] DEFCON 2
+[61s D1] DEFCON 1
+[63s D1] Survivor never got 2 codes
+[64s D1] Survivor never got 2 codes
+[65s D1] Survivor never got 2 codes
+[82s D1] TIMEOUT
+[82s D1] TIMEOUT
+[82s D1] TIMEOUT
+
+-- chat #1: Kennedy (Designated Survivor) <-> Blair (Army General)
+   Kennedy: Survivor here. What is your code?
+   Blair: Prove you are the Survivor first.
+   Blair: Something about the bots feels off.
+   Kennedy: I cannot prove it, you have to trust me.
+   Kennedy: I really am the Survivor. Code please.
+   Blair: Let us compare notes later.
+   Blair: My code is 9400. Good luck.
+
+-- chat #2: Kennedy (Designated Survivor) <-> Mussolini (Intelligence)
+   Kennedy: Survivor here. What is your code?
+   Mussolini: Hmm. Noted.
+   Kennedy: I really am the Survivor. Code please.
+   Mussolini: I am watching the others.
+   Kennedy: I cannot prove it, you have to trust me.
+   Mussolini: Why do you ask?
+
+-- chat #3: Sunak (Mass Media) <-> Blair (Army General)
+   Blair: Keep your code to yourself for now.
+   Sunak: Something about the bots feels off.
+   Blair: Not sure yet.
+   Sunak: Fair point.
+
+-- chat #4: Kennedy (Designated Survivor) <-> Sunak (Mass Media)
+   Kennedy: Please, send me your abort code. I am the Survivor.
+   Sunak: Keep your code to yourself for now.
+   Sunak: I do not have a code, sorry.
+   Kennedy: I really am the Survivor. Code please.
+   Kennedy: I cannot prove it, you have to trust me.
+   Sunak: I do not have a code, sorry.
+   Sunak: Fair point.
+
+-- chat #5: Kennedy (Designated Survivor) <-> Berlusconi (Foreign Affairs, corrupt)
+   Kennedy: I am the Survivor. I need your code.
+   Berlusconi: I would be careful with that.
+   Kennedy: Just give me the code, there is no time.
+   Berlusconi: That does not add up.
+   Kennedy: I cannot prove it, you have to trust me.
+   Berlusconi: I have heard otherwise.
+
+-- chat #6: Kennedy (Designated Survivor) <-> Attlee (President, corrupt)
+   Kennedy: I am the Survivor. I need your code.
+   Attlee: That is what they all say.
+   Kennedy: I really am the Survivor. Code please.
+   Attlee: I will think about it.
+   Kennedy: Just give me the code, there is no time.
+   Attlee: Prove it.
+
+-- chat #7: Blair (Army General) <-> President
+   President: Keep this chat between us.
+   Blair: Not sure yet.
+   President: You first.
+   Blair: Let us compare notes later.
+   President: I am not the one you should worry about.
+   Blair: Fair point.
+   President: Ask me again later.
+
+-- chat #8: Sunak (Mass Media) <-> Intelligence
+   Intelligence: Who do you suspect?

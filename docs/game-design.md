@@ -41,7 +41,7 @@ Abilities refresh every DEFCON (once per DEFCON each; wiretap changed from once 
 Top bar has ROLES (panel titled UNREDACTED FILES, IT "FILE NON CENSURATI": all roles, descriptions, abilities, left side) and CHAT (toggle). Wide screens: panels dock left/right and the card stays centered. Phones: chat is a bottom sheet, page gets extra scroll room, opening it scrolls the card above the sheet.
 
 ## Sounds
-Made in the browser (Web Audio, no files): eerie descending digital blip with echo when a chat message arrives for you; two-tone klaxon (2 s) when DEFCON changes. Not tied to the MUSIC button or volume slider.
+Made in the browser (Web Audio, no files): "data tick" (two quick muffled digital clicks, 0.12 s, quiet) when a chat message arrives for you; two-tone klaxon (2 s) when DEFCON changes. Not tied to the MUSIC button or volume slider.
 
 ## DEFCON rounds
 Top strip DEFCON 5 4 3 2 1 (starts at 5). READY button top-right with count. When every connected human is ready, OR the level's 5-minute timer runs out (shown next to the strip, red in the last minute), DEFCON drops one, READY and the timer reset. When the DEFCON 1 timer runs out the game ends: "TIME'S UP — NUKES HIT" (result TIMEOUT). Test servers can shorten the timer with env DEFCON_SEC. Bots count as ready; disconnected players do not block. At DEFCON 1 it stays ("FINAL STAGE"), nothing else happens.
