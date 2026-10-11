@@ -250,8 +250,9 @@ function onMessage(ws, msg) {
     if (room.pausedLeft != null) { room.defconEnds = Date.now() + room.pausedLeft; room.pausedLeft = null; }
     else room.pausedLeft = Math.max(0, room.defconEnds - Date.now());
     broadcast();
-  } else if (msg.type === 'newgame' && isHost) {
-    room.players = room.players.filter((p) => !p.isBot);
+  } else if ((msg.type === 'newgame' || (msg.type === 'close' && room.phase === 'play')) && isHost) {
+    // newgame after the end, or the host closes a running match: back to the lobby (closing also drops players who left)
+    room.players = room.players.filter((p) => !p.isBot && (msg.type === 'newgame' || p.ws));
     room.players.forEach((p) => { delete p.role; p.name = p.joinName || p.name; });
     room.phase = 'lobby'; room.result = null; room.chats = []; room.tap = null; room.embassy = null; room.defcon = 5; room.ready = new Set(); broadcast();
   } else if (msg.type === 'commit' && room.phase === 'play' && me.role === SURVIVOR && room.defcon <= 3) { // console unlocks at DEFCON 3
