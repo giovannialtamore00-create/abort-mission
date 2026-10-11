@@ -155,10 +155,10 @@ function addMsg(t, from, text) {
   const to = from === t.a ? t.b : t.a;
   matchLog({ ev: 'msg', chat: t.id, from: from.name, fromRole: from.role, fromBot: from.isBot, as: sideMode(t, from), to: to.name, toRole: to.role, toBot: to.isBot, text });
 }
-// bots skip about 1 message in 4; otherwise they answer after 2-6 s, or sometimes 8-20 s
+// corrupt bots skip about 1 message in 4; replies come after 2-6 s, or sometimes 8-20 s
 function botReply(t, bot) {
   const human = t.a === bot ? t.b : t.a;
-  if (Math.random() < 0.25) return;
+  if (bot.corrupt && Math.random() < 0.25) return; // only corrupt bots ignore; loyal bots need the Survivor, so they always answer (maybe late)
   const [min, max] = Math.random() < 0.3 ? [8000, 20000] : [2000, 6000];
   later(min, max, () => {
     if (room.phase !== 'play' || !room.chats.includes(t)) return;
