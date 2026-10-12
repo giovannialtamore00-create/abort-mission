@@ -108,7 +108,7 @@ const LEARNED = (() => {
 // a line asking about the Survivor only to someone signed with a name
 const ROLE_WORDS = { presidente: 'President', president: 'President', ministro: 'Foreign Affairs', minister: 'Foreign Affairs', generale: 'Army General', general: 'Army General', intelligence: 'Intelligence', media: 'Mass Media' };
 function openerFits(line, human, humanMode) {
-  const w = (line.match(/^s*([p{L}]+)/u) || [])[1];
+  const w = (line.match(/^\s*(\p{L}+)/u) || [])[1];
   if (w && ROLE_WORDS[w.toLowerCase()]) return humanMode === 'role' && human.role === ROLE_WORDS[w.toLowerCase()];
   if (/survivor|sopravvissut/i.test(line)) return humanMode === 'name';
   return true;
