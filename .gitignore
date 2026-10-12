@@ -2,3 +2,4 @@ node_modules/
 tunnel.log
 sim-chats.txt
 logs/
+groq-key.txt

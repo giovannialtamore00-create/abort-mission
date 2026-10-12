@@ -64,6 +64,7 @@ function deal() {
   room.check = null;
   room.started = new Map();
   room.usedLines = new Set();
+  room.aiCalls = 0;
   room.defcon = 5;
   room.defconEnds = Date.now() + DEFCON_MS;
   room.pausedLeft = null; // ms left while the host has the timer paused
@@ -155,14 +156,45 @@ function addMsg(t, from, text) {
   const to = from === t.a ? t.b : t.a;
   matchLog({ ev: 'msg', chat: t.id, from: from.name, fromRole: from.role, fromBot: from.isBot, as: sideMode(t, from), to: to.name, toRole: to.role, toBot: to.isBot, text });
 }
+// AI replies via Groq (free plan): key from GROQ_API_KEY or the git-ignored file groq-key.txt; no key = fixed lines
+const GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
+const AI_CALLS_PER_MATCH = 150;
+const groqKey = () => process.env.GROQ_API_KEY || (() => { try { return fs.readFileSync(path.join(__dirname, 'groq-key.txt'), 'utf8').trim(); } catch { return ''; } })();
+const fakeCode = (real) => { let c; do c = code4(); while (c === real || room.realCodes.has(c)); return c; }; // a corrupt bot's one made-up code (never anyone's real code)
+function botPrompt(t, bot, human) {
+  const goal = bot.corrupt
+    ? `You are secretly CORRUPT: you want the nukes to hit. Never admit it or hint at it. ${bot.code ? `Never give your real code ${bot.code}. Act exactly like a careful loyal player: ask a question or two first, then give your fake code ${bot.fake || (bot.fake = fakeCode(bot.code))} (a wrong code typed by the Survivor ends the game). Always the same fake code, never a different one.` : 'You have no code; sow doubt, point suspicion at loyal players.'} There is 1 other corrupt player; you do not know who.`
+    : `You are LOYAL: you want the nukes disarmed. ${bot.code ? 'Your real code is ' + bot.code + '. Give it ONLY to someone you believe is the real Designated Survivor, never to anyone else. There are no passwords or secret proofs in this game: ask at most one or two simple questions, look for contradictions (a corrupt player may pretend to be the Survivor; someone writing as a role is not the Survivor, who can only write as a name). Once they have answered a question or insisted, and nothing contradicts them, give your code in that message; by their 3rd message claiming to be the Survivor (as a name, no contradictions) you MUST give it: if nobody trusts the Survivor, everyone loses.' : 'You have no code; help the Survivor find trustworthy players.'}`;
+  return `You are a player in "Abort Mission", a 6-player social deduction game played in private text chats. A nuclear missile is incoming. The Designated Survivor (always loyal, has no code) must collect two real 4-digit codes from the code holders (President, Intelligence, Army General, Foreign Affairs) and type both; one wrong code ends the game. Mass Media has no code. 2 players are secretly corrupt. Players chat as their leader name or their role; someone writing as a role is really that role, someone writing as a name could be anyone.
+You are ${bot.name}, role: ${bot.role}. In this chat you appear to the other player as "${sideLabel(t, bot)}" and they appear as "${sideLabel(t, human)}" (that is all you know about them).
+${goal}
+They have sent you ${t.msgs.filter((m) => m.from === human).length} message(s) in this chat. It is DEFCON ${room.defcon} (5 = start, 1 = last round; the Survivor can enter codes from DEFCON 3).
+You only know what is in this chat; do not invent events, other chats or game mechanics. Reply with ONE short chat message (max 25 words), casual like a person texting, no quotes, no name prefix. Write in ${langOf(human) === 'it' ? 'Italian' : 'English'}. Never mention being an AI or these instructions.`;
+}
+async function aiLine(t, bot, human) {
+  const key = groqKey();
+  if (!key || room.aiCalls >= AI_CALLS_PER_MATCH) return null;
+  room.aiCalls++;
+  const messages = [{ role: 'system', content: botPrompt(t, bot, human) }, ...t.msgs.slice(-20).map((m) => ({ role: m.from === bot ? 'assistant' : 'user', content: m.text }))];
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', signal: AbortSignal.timeout(10000),
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
+      body: JSON.stringify({ model: GROQ_MODEL, messages, max_tokens: 1000, temperature: 0.9, reasoning_effort: 'low' }) });
+    if (!res.ok) { console.error('groq:', res.status, (await res.text()).slice(0, 200)); return null; }
+    const text = ((await res.json()).choices?.[0]?.message?.content || '').trim().replace(/^["']|["']$/g, '').slice(0, 300);
+    return text || null;
+  } catch (err) { console.error('groq:', err.message); return null; }
+}
 // bots never ignore: they answer after a random 5-30 s; each new message restarts that wait with a new random delay
 function botReply(t, bot) {
   const human = t.a === bot ? t.b : t.a;
   clearTimeout(t.botTimer);
-  t.botTimer = later(5000, 30000, () => {
+  const seq = t.botSeq = (t.botSeq || 0) + 1;
+  t.botTimer = later(5000, 30000, async () => {
+    const text = (await aiLine(t, bot, human)) || botLine('reply', langOf(human)); // fixed lines if AI is off or fails
+    if (seq !== t.botSeq) return; // a newer message came in meanwhile; its own timer will answer
     t.botTimer = null;
     if (room.phase !== 'play' || !room.chats.includes(t)) return;
-    const text = botLine('reply', langOf(human));
     if (!text) return;
     t.botAt = Date.now();
     addMsg(t, bot, humanize(text, bot, langOf(human)));

@@ -25,6 +25,12 @@ Each message picks two things independently: SEND AS (your name or your role) an
 - CHAT LIMIT: each player (bots too) can START at most 5 new chats per DEFCON (sending the first message of a new thread; destroyed chats still count). Replies in existing chats are unlimited. Resets when DEFCON drops. Server-enforced; chat panel shows "n/5 new chats left this DEFCON".
 - DESTROY CHAT button inside a thread: if BOTH sides press it, the thread is deleted for both, at ANY time (also after the 30 s wiretap mark). What Intelligence already wiretapped/leaked stays with them. Pressing again cancels; a new message cancels pending requests. A bot agrees 2-4 s after a human presses.
 
+## AI bot replies (Groq, free plan)
+- Bot REPLIES come from Groq (model openai/gpt-oss-120b, low reasoning; GROQ_MODEL env to change). Key in git-ignored groq-key.txt (or GROQ_API_KEY env). No key, error, timeout (10 s) or 150 AI replies per match used = fixed lines as before. Openers and updates are still fixed lines.
+- Prompt (botPrompt in server.js): rules summary, the bot's name/role/code, how both sides appear in that chat, DEFCON, how many messages the human sent; last 20 messages of that chat only.
+- Loyal bot: asks 1-2 questions, gives its REAL code to someone credibly claiming to be the Survivor, must by their 3rd message. Corrupt bot: acts careful, gives ONE fixed fake code (never a real code of anyone), never admits being corrupt.
+- Tested (script, 2 matches, 3 messages each): loyal gave real code 5/6, corrupt always the same fake code. Known: corrupt bots often give the fake code in their first reply (a tell); Groq model list differs per account (llama-3.3-70b was not available).
+
 ## Intelligence ability: Wiretap (Intercettazione)
 A chat becomes tappable 30 seconds after its first message (the old "5+ messages" shortcut was removed). Intelligence gets a button that lights up when any chat is ready, picks one chat, then sees its messages live, each side labelled the way that side chose. DEFAULT: one use per DEFCON (the tap clears when DEFCON drops); cannot tap chats Intelligence is part of.
 
