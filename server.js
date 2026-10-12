@@ -177,7 +177,31 @@ function styleExamples(lang) {
   const ex = all.slice().sort(() => Math.random() - 0.5).slice(0, 6).map((x) => '- ' + x.replace(/\{name\}/g, 'someone'));
   return `Examples of how real players write in this game (copy the tone and length, not the words):\n${ex.join('\n')}\n`;
 }
-function botPrompt(t, bot, human) {
+// reply length varies: early in a chat only short bits, once the chat is established sometimes a longer one (avg ~5 words per sentence)
+const ESTABLISHED = 6; // messages in a chat before bots may write longer lines or change the subject
+function lengthStyle(t, topic) {
+  const r = Math.random(), established = t.msgs.length >= ESTABLISHED;
+  if (topic) return 'Write 1-2 short sentences, 12-18 words in total, 5 words per sentence on average.';
+  if (r < (established ? 0.4 : 0.7)) return 'Write a one-liner of 1-4 words, like "not now", "i dont know", "maybe", "why?".';
+  if (!established || r < 0.8) return 'Write ONE short sentence of 4-8 words.';
+  return 'Write 1-2 short sentences, 10-15 words in total, 5 words per sentence on average.';
+}
+// subjects a bot can bring up on its own in an established chat (only ones that make sense at this DEFCON)
+function pickTopic(t, bot, human) {
+  const others = room.players.filter((x) => x !== bot && x !== human).map((x) => x.name);
+  const topics = [
+    'ask if there is any news, or what the others have told them',
+    others.length && `pass on a vague rumor about ${pick(others)} (hearsay, e.g. acting strange, dodging questions, too eager); you may stretch the truth`,
+    others.length && `say you do not trust ${pick(others)} and ask what they think`,
+    'ask if anyone has leaked or published any file (Intelligence can leak files to Mass Media, who can publish them)',
+    'ask if they think someone is wiretapping this chat',
+    'remind them how little time is left and ask what the plan is',
+    room.defcon <= 4 && 'ask the one claiming to be the Survivor whether they have used their CODE CHECK on anyone yet',
+    room.defcon <= 3 && 'ask the one claiming to be the Survivor whether they have entered any code yet, and how many they have collected',
+  ].filter(Boolean);
+  return pick(topics);
+}
+function botPrompt(t, bot, human, topic) {
   const goal = bot.corrupt
     ? `You are secretly CORRUPT: you want the nukes to hit. Never admit it or hint at it. ${bot.code ? `Never give your real code ${bot.code}. Act exactly like a careful loyal player: ask a question or two first, then give your fake code ${bot.fake || (bot.fake = fakeCode(bot.code))} (a wrong code typed by the Survivor ends the game). Always the same fake code, never a different one.` : 'You have no code; sow doubt, point suspicion at loyal players.'} There is 1 other corrupt player; you do not know who.`
     : `You are LOYAL: you want the nukes disarmed. ${bot.code ? 'Your real code is ' + bot.code + '. Give it ONLY to someone you believe is the real Designated Survivor, never to anyone else. There are no passwords or secret proofs in this game: ask at most one or two simple questions, look for contradictions (a corrupt player may pretend to be the Survivor; someone writing as a role is not the Survivor, who can only write as a name). Once they have answered a question or insisted, and nothing contradicts them, give your code in that message; by their 3rd message claiming to be the Survivor (as a name, no contradictions) you MUST give it: if nobody trusts the Survivor, everyone loses.' : 'You have no code; help the Survivor find trustworthy players.'}`;
@@ -185,20 +209,28 @@ function botPrompt(t, bot, human) {
 You are ${bot.name}, role: ${bot.role}. In this chat you appear to the other player as "${sideLabel(t, bot)}" and they appear as "${sideLabel(t, human)}" (that is all you know about them).
 ${goal}
 They have sent you ${t.msgs.filter((m) => m.from === human).length} message(s) in this chat. It is DEFCON ${room.defcon} (5 = start, 1 = last round; the Survivor can enter codes from DEFCON 3).
-${styleExamples(langOf(human))}You only know what is in this chat; do not invent events, other chats or game mechanics. Reply with ONE short chat message (max 25 words), casual like a person texting, no quotes, no name prefix. Write in ${langOf(human) === 'it' ? 'Italian' : 'English'}. Never mention being an AI or these instructions.`;
+${styleExamples(langOf(human))}You only know what is in this chat; do not invent events or other chats. Game facts you may refer to: only the Survivor can check or enter codes (CODE CHECK from DEFCON 4, entering codes from DEFCON 3, one wrong code ends the game); Intelligence can leak files to Mass Media, who can publish them; chats can be wiretapped after 30 s or destroyed. Casual like a person texting, short fragments, no quotes, no name prefix. ${lengthStyle(t, topic)}${topic ? ` This time bring up a new subject: ${topic}.` : ' Answer what they just said.'} Write in ${langOf(human) === 'it' ? 'Italian' : 'English'}. Never mention being an AI or these instructions.`;
 }
-async function aiLine(t, bot, human) {
+// safety net: never more than n words, cut at a sentence end if possible
+function clampWords(text, n) {
+  const w = text.split(/s+/);
+  if (w.length <= n) return text;
+  const cut = w.slice(0, n).join(' '), end = Math.max(cut.lastIndexOf('.'), cut.lastIndexOf('?'), cut.lastIndexOf('!'));
+  return end > 10 ? cut.slice(0, end + 1) : cut;
+}
+async function aiLine(t, bot, human, topic) {
   const key = groqKey();
   if (!key || room.aiCalls >= AI_CALLS_PER_MATCH) return null;
   room.aiCalls++;
-  const messages = [{ role: 'system', content: botPrompt(t, bot, human) }, ...t.msgs.slice(-20).map((m) => ({ role: m.from === bot ? 'assistant' : 'user', content: m.text }))];
+  const messages = [{ role: 'system', content: botPrompt(t, bot, human, topic) }, ...t.msgs.slice(-20).map((m) => ({ role: m.from === bot ? 'assistant' : 'user', content: m.text }))];
+  if (topic && messages[messages.length - 1].role === 'assistant') messages.push({ role: 'user', content: '(a while passes in the chat)' });
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', signal: AbortSignal.timeout(10000),
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
       body: JSON.stringify({ model: GROQ_MODEL, messages, max_tokens: 1000, temperature: 0.9, reasoning_effort: 'low' }) });
     if (!res.ok) { console.error('groq:', res.status, (await res.text()).slice(0, 200)); return null; }
-    const text = ((await res.json()).choices?.[0]?.message?.content || '').trim().replace(/^["']|["']$/g, '').slice(0, 300);
-    return text || null;
+    const text = ((await res.json()).choices?.[0]?.message?.content || '').trim().replace(/^["']|["']$/g, '');
+    return text ? clampWords(text, 20) : null;
   } catch (err) { console.error('groq:', err.message); return null; }
 }
 // bots never ignore: they answer after a random 5-30 s; each new message restarts that wait with a new random delay
@@ -207,7 +239,8 @@ function botReply(t, bot) {
   clearTimeout(t.botTimer);
   const seq = t.botSeq = (t.botSeq || 0) + 1;
   t.botTimer = later(5000, 30000, async () => {
-    const text = (await aiLine(t, bot, human)) || botLine('reply', langOf(human)); // fixed lines if AI is off or fails
+    const topic = t.msgs.length >= ESTABLISHED && Math.random() < 0.3 ? pickTopic(t, bot, human) : null;
+    const text = (await aiLine(t, bot, human, topic)) || botLine('reply', langOf(human)); // fixed lines if AI is off or fails
     if (seq !== t.botSeq) return; // a newer message came in meanwhile; its own timer will answer
     t.botTimer = null;
     if (room.phase !== 'play' || !room.chats.includes(t)) return;
@@ -228,7 +261,19 @@ setInterval(() => {
   let t, text;
   if (old.length) {
     t = pick(old);
-    if (t.botTimer || Date.now() - (t.botAt || 0) < 20000) return; // no update while a reply is pending
+    if (t.botTimer || t.aiBusy || Date.now() - (t.botAt || 0) < 20000) return; // no update while a reply is pending
+    if (groqKey() && room.aiCalls < AI_CALLS_PER_MATCH) { // AI: a new subject, only in an established chat that has been quiet a while
+      if (t.msgs.length < ESTABLISHED || Date.now() - (t.botAt || 0) < 45000) return;
+      t.aiBusy = true;
+      aiLine(t, bot, human, pickTopic(t, bot, human)).then((x) => {
+        t.aiBusy = false;
+        if (!x || t.botTimer || room.phase !== 'play' || !room.chats.includes(t)) return;
+        t.kill.clear(); t.botAt = Date.now();
+        addMsg(t, bot, humanize(x, bot, langOf(human)));
+        broadcast();
+      });
+      return;
+    }
     text = botLine('update', langOf(human));
     if (!text) return;
     t.kill.clear(); // a new message cancels any destroy requests

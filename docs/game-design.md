@@ -95,3 +95,8 @@ Script (temp folder, not saved in project) plays 6 scripted bots on the real ser
 8. Honest holders share only 40% of the time when asked by name. That hidden-identity tension is the core of the game; the bot's trust rules decide the win rate.
 Target to aim for: Survivor side wins about 40-60% with good play on both sides (now 30%).
 Bot strategy to-do: Survivor (keep a claims table per source, use the check on the best candidate, deadline commit); honest holders (trust rules); corrupt (shared fake, target the likely Survivor); Intelligence/Media/Foreign Affairs (pick targets by who talks to whom, not at random).
+
+## Groq bot style (2026-10-12)
+- Replies average ~5 words per sentence. Early in a chat (under 6 messages): mostly 1-4 word one-liners. Established chats: one-liners, one short sentence, or 1-2 sentences up to ~15 words. Hard cap 20 words.
+- In established chats, 30% of replies (and quiet old chats after 45 s) bring a new topic: news, gossip about a named player, distrust, leaks/publish, wiretap, time pressure, and (DEFCON 4/3) asking if the survivor did the code check / entered codes.
+- Test (port 3052, 11 messages): bot replies 1-6 words, one topic line at message 22 ("time's running out, defcon dropping fast. what's our plan now?").
