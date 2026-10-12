@@ -6,12 +6,51 @@
       "Can i trust you",
       "WHat can you tell me"
     ],
-    "it": []
+    "it": [
+      "chi sei?",
+      "ho bisogno di conoscere la tua identità",
+      "News?",
+      "codici ora",
+      "ciao, sai chi sono, posso aiutarti",
+      "possiamo aiutarci a vicenda, cosa dici?",
+      "quando vuoi ti posso dare il mio",
+      "Siamo circondati da corrotti",
+      "mi hanno detto che cerchi dei codici",
+      "mi servono informazioni",
+      "Dobbiamo capire dove si nascondono i corrotti."
+    ]
   },
   "questions": {
     "en": [
-      "and you?"
+      "and you?",
+      "why ? inflation"
     ],
-    "it": []
+    "it": [
+      "perchè?",
+      "qual'è il tuo?",
+      "cioè?",
+      "cosa accadrebbe?",
+      "io?",
+      "chi sono?",
+      "cosa porterebbe?",
+      "cosa succede dopo?",
+      "come mi hai chiamato all'inizio?",
+      "tu sei corrotto?",
+      "tu?",
+      "pensa questo se sei buono e mi dai il tuo codice giusto io se fossi cattivo cosa mai potrei farci di male? niente",
+      "bene, chi sei?",
+      "ok hai gia dei codici?",
+      "mi rispondi?",
+      "????????",
+      "chi sei?",
+      "di chi ti fidi?",
+      "hai novita?",
+      "come sta andando?",
+      "come posso sapere se posso fidarmi?",
+      "e quindi? questo non dimostra che tu sia corrotto",
+      "come posso sapere se mi posso fidare di te?",
+      "perché questo codice così all'improvviso?",
+      "cosa ti serve?"
+    ]
   }
 }
