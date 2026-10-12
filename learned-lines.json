@@ -17,7 +17,16 @@
       "Siamo circondati da corrotti",
       "mi hanno detto che cerchi dei codici",
       "mi servono informazioni",
-      "Dobbiamo capire dove si nascondono i corrotti."
+      "Dobbiamo capire dove si nascondono i corrotti.",
+      "acqua non è vino",
+      "vittoria!",
+      "Ministro come va",
+      "Presidente i codici",
+      "generale il tempo stringe",
+      "generale mi sente?",
+      "sei il survivor?",
+      "Sopravvissuto?",
+      "Piantala di seminare corruzione. Lo sai benissimo che stai ostacolando il survivor."
     ]
   },
   "questions": {
@@ -50,7 +59,8 @@
       "e quindi? questo non dimostra che tu sia corrotto",
       "come posso sapere se mi posso fidare di te?",
       "perché questo codice così all'improvviso?",
-      "cosa ti serve?"
+      "cosa ti serve?",
+      "Io sono l'Intelligence. Ti serve un codice?"
     ]
   }
 }

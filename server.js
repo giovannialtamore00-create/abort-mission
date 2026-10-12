@@ -104,9 +104,18 @@ const LEARNED = (() => {
 })();
 // shared pool: each line is said at most once per match by any bot (in either language);
 // replies fall back to unused openers, and when everything is used the bots go quiet
-function botLine(kind, lang) {
+// some human openers only make sense for one kind of partner: a line starting with a role word ("Presidente i codici") only to that role, signed as a role;
+// a line asking about the Survivor only to someone signed with a name
+const ROLE_WORDS = { presidente: 'President', president: 'President', ministro: 'Foreign Affairs', minister: 'Foreign Affairs', generale: 'Army General', general: 'Army General', intelligence: 'Intelligence', media: 'Mass Media' };
+function openerFits(line, human, humanMode) {
+  const w = (line.match(/^s*([p{L}]+)/u) || [])[1];
+  if (w && ROLE_WORDS[w.toLowerCase()]) return humanMode === 'role' && human.role === ROLE_WORDS[w.toLowerCase()];
+  if (/survivor|sopravvissut/i.test(line)) return humanMode === 'name';
+  return true;
+}
+function botLine(kind, lang, human, humanMode) {
   if (kind === 'say') { // real players' openers first (learned-lines.json), {name} = a random player
-    const list = LEARNED.openers[lang] || [], free = list.map((_, i) => i).filter((i) => !room.usedLines.has('L' + lang + i));
+    const list = LEARNED.openers[lang] || [], free = list.map((_, i) => i).filter((i) => !room.usedLines.has('L' + lang + i) && openerFits(list[i], human, humanMode));
     if (free.length) { const i = pick(free); room.usedLines.add('L' + lang + i); return list[i].replace(/\{name\}/g, () => pick(room.players).name); }
     return null; // bots only open chats with learned openers
   }
@@ -291,9 +300,10 @@ setInterval(() => {
     t.kill.clear(); // a new message cancels any destroy requests
   } else {
     if (chatsLeft(bot) <= 0) return;
-    text = botLine('say', langOf(human));
+    const humanMode = human.role === SURVIVOR ? 'name' : pick(['name', 'role']); // nobody can address the Survivor by role
+    text = botLine('say', langOf(human), human, humanMode);
     if (!text) return;
-    t = threadFor(bot, human, pick(['name', 'role']), human.role === SURVIVOR ? 'name' : pick(['name', 'role'])); // nobody can address the Survivor by role
+    t = threadFor(bot, human, pick(['name', 'role']), humanMode);
   }
   t.botAt = Date.now();
   addMsg(t, bot, humanize(text, bot, langOf(human)));
