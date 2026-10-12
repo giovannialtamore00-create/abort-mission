@@ -1,4 +1,4 @@
-# DEFCON Survivors (formerly Abort Mission; repo, Render URL and package name still say abort-mission)
+# DEFCON Survivors (formerly Abort Mission; local folder is still abort-mission)
 
 6-player social deduction demo for friends over a voice call. Host runs it on their PC and shares a Cloudflare tunnel link.
 Stack: Node.js + `ws`, one in-memory room, vanilla JS client. Files: `server.js`, `public/index.html`, `public/music.m4a`.
@@ -31,6 +31,6 @@ Newest (2026-10-11): CODE CHECK unlocks at DEFCON 4, COMMIT console unlocks at D
 - Scripted tests against the live port left the room in a started game ("Game already started"). Test on a separate port.
 
 ## Published (2026-10-12)
-- GitHub (public): https://github.com/giovannialtamore00-create/abort-mission. `public/music.m4a` is git-ignored (origin unconfirmed), so the online version has no music. Local history was rewritten to remove it; backup branch `backup-before-music-removal` (local only).
-- Render (free, auto-deploys on push to main): https://abort-mission.onrender.com, service srv-db62v3lckfvc73buo77g. Sleeps when idle (first visit ~1 min). No GROQ_API_KEY set there, so bots use fixed lines. Add it as a Render env var to enable AI bots. Match logs on Render are lost on restart.
-- Platypus card with logo (`abort-mission-logo.svg`) added to the main grid.
+- GitHub (public): https://github.com/giovannialtamore00-create/defcon-survivors. `public/music.m4a` is git-ignored (origin unconfirmed), so the online version has no music. Local history was rewritten to remove it; backup branch `backup-before-music-removal` (local only).
+- Render (free, auto-deploys on push to main): https://defcon-survivors.onrender.com, service srv-db634rh42hec73anv0eg (old service abort-mission srv-db62v3lckfvc73buo77g can be deleted in the Render dashboard). Sleeps when idle (first visit ~1 min). No GROQ_API_KEY set there, so bots use fixed lines. Add it as a Render env var to enable AI bots. Match logs on Render are lost on restart.
+- Platypus card with logo (`defcon-survivors-logo.svg`) added to the main grid.
