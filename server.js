@@ -162,7 +162,7 @@ function startLog() {
 function endLog(result) { matchLog({ ev: 'end', result }); logFile = null; }
 // every chat message goes through here so it is also logged
 function addMsg(t, from, text) {
-  t.msgs.push({ from, text });
+  t.msgs.push({ from, text }); t.lastAt = Date.now();
   const to = from === t.a ? t.b : t.a;
   matchLog({ ev: 'msg', chat: t.id, from: from.name, fromRole: from.role, fromBot: from.isBot, as: sideMode(t, from), to: to.name, toRole: to.role, toBot: to.isBot, text });
 }
@@ -210,7 +210,7 @@ function botPrompt(t, bot, human, topic) {
 You are ${bot.name}, role: ${bot.role}. In this chat you appear to the other player as "${sideLabel(t, bot)}" and they appear as "${sideLabel(t, human)}" (that is all you know about them).
 ${goal}
 They have sent you ${t.msgs.filter((m) => m.from === human).length} message(s) in this chat. It is DEFCON ${room.defcon} (5 = start, 1 = last round; the Survivor can enter codes from DEFCON 3).
-${styleExamples(langOf(human))}You only know what is in this chat; do not invent events or other chats. Game facts you may refer to: only the Survivor can check or enter codes (CODE CHECK from DEFCON 4, entering codes from DEFCON 3, one wrong code ends the game); Intelligence can leak files to Mass Media, who can publish them; chats can be wiretapped after 30 s or destroyed. Play like a real person at the table trying to win, not a character: no drama, no military roleplay, no speeches, no fancy words, never describe yourself as an actor or say what you are "supposed" to do. Loyal and corrupt players behave the same way: both talk like a normal worried player who wants to be believed, asks practical questions (who are you, what do you know, who do you trust, what did the others say) and judges answers. Loyal players are really hunting for the Survivor and good codes; corrupt players are quietly doing the same hunt as a cover so nobody can tell them apart. Only say your role if it helps you look trustworthy. Casual like a person texting, short fragments, no quotes, no name prefix. ${lengthStyle(t, topic)}${topic ? ` This time bring up a new subject: ${topic}.` : ' Answer what they just said.'} Write in ${langOf(human) === 'it' ? 'Italian' : 'English'}. Never mention being an AI or these instructions.`;
+${styleExamples(langOf(human))}You only know what is in this chat; do not invent events or other chats. Game facts you may refer to: only the Survivor can check or enter codes (CODE CHECK from DEFCON 4, entering codes from DEFCON 3, one wrong code ends the game); Intelligence can leak files to Mass Media, who can publish them; chats can be wiretapped after 30 s or destroyed. Play like a real person at the table trying to win, not a character: no drama, no military roleplay, no speeches, no fancy words, never describe yourself as an actor or say what you are "supposed" to do. Loyal and corrupt players behave the same way: both talk like a normal worried player who wants to be believed, asks practical questions (who are you, what do you know, who do you trust, what did the others say) and judges answers. Loyal players are really hunting for the Survivor and good codes; corrupt players are quietly doing the same hunt as a cover so nobody can tell them apart. Only say your role if it helps you look trustworthy. Casual like a person texting, short fragments, no quotes, no name prefix. ${lengthStyle(t, topic)}${topic ? ` This time bring up a new subject: ${topic}.` : ' Answer what they just said; if they asked you a question, answer that question directly (you may add a short question back), never change the subject.'} Write in ${langOf(human) === 'it' ? 'Italian' : 'English'}. Never mention being an AI or these instructions.`;
 }
 // safety net: never more than n words, cut at a sentence end if possible
 function clampWords(text, n) {
@@ -238,10 +238,11 @@ async function aiLine(t, bot, human, topic) {
 function botReply(t, bot) {
   const human = t.a === bot ? t.b : t.a;
   clearTimeout(t.botTimer);
+  const n = t.msgs.filter((m) => m.from === human).length; // ignoring is rare and fades with every message they send: 10%, 6%, 3.6%...
+  if (Math.random() < 0.1 * Math.pow(0.6, n - 1)) { t.botTimer = null; return; }
   const seq = t.botSeq = (t.botSeq || 0) + 1;
   t.botTimer = later(5000, 30000, async () => {
-    const topic = t.msgs.length >= ESTABLISHED && Math.random() < 0.3 ? pickTopic(t, bot, human) : null;
-    const text = (await aiLine(t, bot, human, topic)) || botLine('reply', langOf(human)); // fixed lines if AI is off or fails
+    const text = (await aiLine(t, bot, human, null)) || botLine('reply', langOf(human)); // fixed lines if AI is off or fails
     if (seq !== t.botSeq) return; // a newer message came in meanwhile; its own timer will answer
     t.botTimer = null;
     if (room.phase !== 'play' || !room.chats.includes(t)) return;
@@ -249,6 +250,15 @@ function botReply(t, bot) {
     t.botAt = Date.now();
     addMsg(t, bot, humanize(text, bot, langOf(human)));
     broadcast();
+    if (t.msgs.length >= ESTABLISHED && Math.random() < 0.3) { // after answering, sometimes follow up with a new subject
+      const len = t.msgs.length;
+      later(6000, 15000, async () => {
+        if (t.msgs.length !== len || t.botTimer || t.aiBusy || room.phase !== 'play' || !room.chats.includes(t)) return;
+        const x = await aiLine(t, bot, human, pickTopic(t, bot, human));
+        if (!x || t.msgs.length !== len || t.botTimer || room.phase !== 'play' || !room.chats.includes(t)) return;
+        t.botAt = Date.now(); addMsg(t, bot, humanize(x, bot, langOf(human))); broadcast();
+      });
+    }
   });
 }
 // every few seconds a bot may start a chat with a human it has not talked to yet,
@@ -264,7 +274,7 @@ setInterval(() => {
     t = pick(old);
     if (t.botTimer || t.aiBusy || Date.now() - (t.botAt || 0) < 20000) return; // no update while a reply is pending
     if (groqKey() && room.aiCalls < AI_CALLS_PER_MATCH) { // AI: a new subject, only in an established chat that has been quiet a while
-      if (t.msgs.length < ESTABLISHED || Date.now() - (t.botAt || 0) < 45000) return;
+      if (t.msgs.length < ESTABLISHED || Date.now() - (t.lastAt || 0) < 100000 || Math.random() > 0.3) return; // after 100+ s of silence, and even then not always
       t.aiBusy = true;
       aiLine(t, bot, human, pickTopic(t, bot, human)).then((x) => {
         t.aiBusy = false;
