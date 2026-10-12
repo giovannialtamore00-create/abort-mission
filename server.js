@@ -108,6 +108,7 @@ function botLine(kind, lang) {
   if (kind === 'say') { // real players' openers first (learned-lines.json), {name} = a random player
     const list = LEARNED.openers[lang] || [], free = list.map((_, i) => i).filter((i) => !room.usedLines.has('L' + lang + i));
     if (free.length) { const i = pick(free); room.usedLines.add('L' + lang + i); return list[i].replace(/\{name\}/g, () => pick(room.players).name); }
+    return null; // bots only open chats with learned openers
   }
   const pools = kind === 'reply' ? [['r', BOT_REPLY], ['s', BOT_SAY]] : kind === 'update' ? [['u', BOT_UPDATE]] : [['s', BOT_SAY]];
   for (const [k, lists] of pools) {
