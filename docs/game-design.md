@@ -63,6 +63,10 @@ Top strip DEFCON 5 4 3 2 1 (starts at 5). READY button top-right with count. Whe
 - After the match, the end screen shows ALL MATCH CHATS to everyone: every chat with real names and roles, destroyed ones marked DESTROYED.
 - Destroyed chats stay in the log. `logs/` is git-ignored (friends' private chats).
 
+## Learned lines from real players (2026-10-12)
+End screen button SEND MY OPENERS & QUESTIONS posts the player's own first messages (openers) and "?" messages (questions), names replaced by {name}, to a Google Form (id in public/index.html, FORM_URL/FORM_ENTRY). Opt-in, once per match.
+To use the answers: link the form to a Sheet, download as CSV, run `node tools/import-lines.js file.csv` (drops links, AI-instruction text, too long/short, duplicates), read learned-lines.json, commit. Bots then use openers first when starting chats ({name} = a random player) and 6 random lines go into the Groq prompt as style examples. Restart the server after changing the file.
+
 ## Open questions
 1. What should happen when everyone is ready at DEFCON 1 (nukes hit / game over)? Currently nothing.
 2. Should the 30 s wiretap timer reset or count inside a DEFCON round?

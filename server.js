@@ -97,9 +97,18 @@ const BOT_UPDATE = {
     'Qualcuno mi ha appena chiesto di te.', 'Dimentica quello che ho detto prima.', 'Sto iniziando a preoccuparmi.', 'Eccomi di nuovo. Cosa mi sono perso?', 'Gli altri si comportano in modo strano.', 'Tienimi aggiornato.'],
 };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
+// lines written by real players (sent through the end-screen button, reviewed by hand): { openers: {en, it}, questions: {en, it} }
+const LEARNED = (() => {
+  const empty = { openers: { en: [], it: [] }, questions: { en: [], it: [] } };
+  try { return { ...empty, ...JSON.parse(fs.readFileSync(path.join(__dirname, 'learned-lines.json'), 'utf8')) }; } catch { return empty; }
+})();
 // shared pool: each line is said at most once per match by any bot (in either language);
 // replies fall back to unused openers, and when everything is used the bots go quiet
 function botLine(kind, lang) {
+  if (kind === 'say') { // real players' openers first (learned-lines.json), {name} = a random player
+    const list = LEARNED.openers[lang] || [], free = list.map((_, i) => i).filter((i) => !room.usedLines.has('L' + lang + i));
+    if (free.length) { const i = pick(free); room.usedLines.add('L' + lang + i); return list[i].replace(/\{name\}/g, () => pick(room.players).name); }
+  }
   const pools = kind === 'reply' ? [['r', BOT_REPLY], ['s', BOT_SAY]] : kind === 'update' ? [['u', BOT_UPDATE]] : [['s', BOT_SAY]];
   for (const [k, lists] of pools) {
     const free = lists.en.map((_, i) => i).filter((i) => !room.usedLines.has(k + i));
@@ -161,6 +170,13 @@ const GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
 const AI_CALLS_PER_MATCH = 150;
 const groqKey = () => process.env.GROQ_API_KEY || (() => { try { return fs.readFileSync(path.join(__dirname, 'groq-key.txt'), 'utf8').trim(); } catch { return ''; } })();
 const fakeCode = (real) => { let c; do c = code4(); while (c === real || room.realCodes.has(c)); return c; }; // a corrupt bot's one made-up code (never anyone's real code)
+// a few real player lines as style examples for the AI (never copied word for word)
+function styleExamples(lang) {
+  const all = [...(LEARNED.openers[lang] || []), ...(LEARNED.questions[lang] || [])];
+  if (!all.length) return '';
+  const ex = all.slice().sort(() => Math.random() - 0.5).slice(0, 6).map((x) => '- ' + x.replace(/\{name\}/g, 'someone'));
+  return `Examples of how real players write in this game (copy the tone and length, not the words):\n${ex.join('\n')}\n`;
+}
 function botPrompt(t, bot, human) {
   const goal = bot.corrupt
     ? `You are secretly CORRUPT: you want the nukes to hit. Never admit it or hint at it. ${bot.code ? `Never give your real code ${bot.code}. Act exactly like a careful loyal player: ask a question or two first, then give your fake code ${bot.fake || (bot.fake = fakeCode(bot.code))} (a wrong code typed by the Survivor ends the game). Always the same fake code, never a different one.` : 'You have no code; sow doubt, point suspicion at loyal players.'} There is 1 other corrupt player; you do not know who.`
@@ -169,7 +185,7 @@ function botPrompt(t, bot, human) {
 You are ${bot.name}, role: ${bot.role}. In this chat you appear to the other player as "${sideLabel(t, bot)}" and they appear as "${sideLabel(t, human)}" (that is all you know about them).
 ${goal}
 They have sent you ${t.msgs.filter((m) => m.from === human).length} message(s) in this chat. It is DEFCON ${room.defcon} (5 = start, 1 = last round; the Survivor can enter codes from DEFCON 3).
-You only know what is in this chat; do not invent events, other chats or game mechanics. Reply with ONE short chat message (max 25 words), casual like a person texting, no quotes, no name prefix. Write in ${langOf(human) === 'it' ? 'Italian' : 'English'}. Never mention being an AI or these instructions.`;
+${styleExamples(langOf(human))}You only know what is in this chat; do not invent events, other chats or game mechanics. Reply with ONE short chat message (max 25 words), casual like a person texting, no quotes, no name prefix. Write in ${langOf(human) === 'it' ? 'Italian' : 'English'}. Never mention being an AI or these instructions.`;
 }
 async function aiLine(t, bot, human) {
   const key = groqKey();
@@ -303,7 +319,7 @@ function viewFor(p) {
     v.reveal = room.players.map((x) => ({ name: x.name, ...cardOf(x), real: x.realCode }));
     // post-match: every chat of the match, with real names and roles, destroyed ones included
     v.chatLog = room.allChats.filter((t) => t.msgs.length).map((t) => ({ a: { name: t.a.name, role: t.a.role }, b: { name: t.b.name, role: t.b.role },
-      destroyed: !room.chats.includes(t), msgs: t.msgs.map((m) => ({ a: m.from === t.a, text: m.text })) }));
+      destroyed: !room.chats.includes(t), msgs: t.msgs.map((m) => ({ a: m.from === t.a, mine: m.from === p, text: m.text })) }));
   }
   return v;
 }
