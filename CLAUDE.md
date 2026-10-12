@@ -29,3 +29,8 @@ Newest (2026-10-11): CODE CHECK unlocks at DEFCON 4, COMMIT console unlocks at D
 - A patch put an unescaped ' in a page string and broke the whole page (also on the live port, which serves the same file). After editing index.html, run the parse check in docs/running-and-testing.md.
 - Left a test browser tab connected to a test port; it took a seat and broke a script test. Navigate the tab away before scripted tests.
 - Scripted tests against the live port left the room in a started game ("Game already started"). Test on a separate port.
+
+## Published (2026-10-12)
+- GitHub (public): https://github.com/giovannialtamore00-create/abort-mission. `public/music.m4a` is git-ignored (origin unconfirmed), so the online version has no music. Local history was rewritten to remove it; backup branch `backup-before-music-removal` (local only).
+- Render (free, auto-deploys on push to main): https://abort-mission.onrender.com, service srv-db62v3lckfvc73buo77g. Sleeps when idle (first visit ~1 min). No GROQ_API_KEY set there, so bots use fixed lines. Add it as a Render env var to enable AI bots. Match logs on Render are lost on restart.
+- Platypus card with logo (`abort-mission-logo.svg`) added to the main grid.
