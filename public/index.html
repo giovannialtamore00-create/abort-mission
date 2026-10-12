@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Abort Mission</title>
+<title>DEFCON Survivors</title>
 <style>
   :root { --bg:#0b0f0c; --panel:#121a14; --g:#38ff7a; --dim:#2a6b43; --red:#ff4545; --amber:#ffb020; }
   * { box-sizing:border-box; }
@@ -286,7 +286,7 @@ function renderMain() {
   const typed = document.getElementById('digits') ? document.getElementById('digits').value : '';
   const typedChk = document.getElementById('chkdigits') ? document.getElementById('chkdigits').value : '';
   const focusId = document.activeElement && document.activeElement.id;
-  let h = `<h1>ABORT MISSION</h1><div class="sub">${t('sub')}</div>`;
+  let h = `<h1>DEFCON SURVIVORS</h1><div class="sub">${t('sub')}</div>`;
   if (!state) {
     h += `<div class="box"><div class="lbl">${t('enterName')}</div>
       <input type="text" id="name" maxlength="16" value="${esc(savedName)}" autofocus>
