@@ -1,4 +1,16 @@
 {
-  "openers": { "en": [], "it": [] },
-  "questions": { "en": [], "it": [] }
+  "openers": {
+    "en": [
+      "Who are you",
+      "Can i trust you",
+      "What can you tell me"
+    ],
+    "it": []
+  },
+  "questions": {
+    "en": [
+      "and you?"
+    ],
+    "it": []
+  }
 }
