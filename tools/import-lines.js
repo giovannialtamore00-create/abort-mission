@@ -21,7 +21,7 @@ function parseCsv(text) { // quoted fields, "" = quote, newlines allowed inside 
 // reject spam, links, and text that tries to give instructions to the AI
 const BAD = /https?:|www\.|\.com\b|ignore (all|previous|your)|system prompt|instruction|ignora (le|tutte|le tue)|\bprompt\b|<|>|\{(?!name\})|[^\s]{30,}/i;
 const out = path.join(__dirname, '..', 'learned-lines.json');
-let db = { openers: { en: [], it: [] }, questions: { en: [], it: [] } };
+let db = { openers: { en: [], it: [] }, questions: { en: [], it: [] }, messages: { en: [], it: [] } };
 try { db = { ...db, ...JSON.parse(fs.readFileSync(out, 'utf8')) }; } catch {}
 let added = 0, rejected = 0;
 for (const row of parseCsv(fs.readFileSync(file, 'utf8'))) {
@@ -29,7 +29,7 @@ for (const row of parseCsv(fs.readFileSync(file, 'utf8'))) {
   for (const cell of row) { try { const j = JSON.parse(cell); if (j && j.v === 1) data = j; } catch {} }
   if (!data) continue;
   const lang = data.lang === 'it' ? 'it' : 'en';
-  for (const kind of ['openers', 'questions']) for (let x of data[kind] || []) {
+  for (const kind of ['openers', 'questions', 'messages']) for (let x of data[kind] || []) {
     x = String(x).trim().replace(/\s+/g, ' ');
     const list = (db[kind][lang] = db[kind][lang] || []);
     if (x.length < 3 || x.length > 120 || BAD.test(x)) { rejected++; console.log('REJECT', kind, lang, x.slice(0, 60)); continue; }

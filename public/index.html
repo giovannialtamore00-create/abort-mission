@@ -99,7 +99,7 @@ const TX = {
     noHost: 'No host yet — someone must press HOST GAME', yourRole: 'YOUR ROLE', corrupt: 'CORRUPT', loyal: 'LOYAL', abortCode: 'ABORT CODE',
     noCode: 'NO ABORT CODE', fellow: (n) => `${n} other corrupt player${n > 1 ? 's' : ''} (identity hidden)`, console: 'ABORT CONSOLE — ENTER 2 CODES (8 DIGITS)', commit: 'COMMIT',
     chkInfo: 'CODE CHECK — test ONE 4-digit code. Once per match, from DEFCON 4; does not use your commit.', locked: (n) => `LOCKED until DEFCON ${n}`, chkBtn: 'CHECK', chkValid: 'VALID', chkInvalid: 'INVALID', rejected: 'CODES REJECTED', attempts: 'attempts:', disarmed: 'NUKES DISARMED', mission: 'Mission complete. Final reveal:', failed: 'WRONG CODE — NUKES HIT', timeUp: "TIME'S UP — NUKES HIT", missionFail: 'Mission failed. Final reveal:', loyalLow: 'loyal',
-    fake: '(fake)', chatLogTitle: 'ALL MATCH CHATS', sendLines: (n) => `SEND MY OPENERS & QUESTIONS (${n})`, sendNote: 'Helps the bots sound human. Only your own messages, no names.', sentLines: 'Sent, thanks!', sendFail: 'Sending failed, try again.',destroyedLbl: 'DESTROYED', again: 'NEW GAME', music: (on) => (on ? 'MUSIC: ON' : 'MUSIC: OFF'),
+    fake: '(fake)', chatLogTitle: 'ALL MATCH CHATS', sendLines: (n) => `SEND MY CHAT MESSAGES (${n})`, sendNote: 'Helps the bots sound human. Only your own messages, no names.', sentLines: 'Sent, thanks!', sendFail: 'Sending failed, try again.',destroyedLbl: 'DESTROYED', again: 'NEW GAME', music: (on) => (on ? 'MUSIC: ON' : 'MUSIC: OFF'),
     'Game already started': 'Game already started', 'Room is full': 'Room is full', 'Room already has a host': 'Room already has a host',
     pubName: 'PUBLISH', pubInfo: 'Publish an extract of a file to everyone. You can only publish files Intelligence leaks to you. Once per DEFCON.', pubUsed: 'Already published this DEFCON.', pubNone: 'You have no files. Intelligence must leak one to you.', pubPick: 'Choose a file:', leakFile: 'LEAK FILE', leakUsed: 'You already leaked a file this DEFCON.', leakNone: 'No findings yet. Wiretap a chat first.', leakPick: 'Choose a finding to leak to Mass Media:', pubSend: 'PUBLISH LEAK', pubShow: 'SHOW', pubRed: 'REDACT', pubHide: 'OMIT', pubRedA: (n) => 'Redact identity: ' + n, pubRedB: (n) => 'Redact identity: ' + n, pubRedBy: 'Redact who leaked it', leaksTitle: 'LEAKS', leakBy: 'LEAKED BY', redacted: '█████',
     destroy: 'DESTROY CHAT', destroyWait: 'DESTROY: waiting for the other side (cancel)', destroyAsk: 'The other side wants to destroy this chat. Press to agree.',
@@ -132,7 +132,7 @@ const TX = {
     noHost: 'Nessun host — qualcuno deve premere CREA PARTITA', yourRole: 'IL TUO RUOLO', corrupt: 'CORROTTO', loyal: 'LEALE', abortCode: 'CODICE DI ANNULLAMENTO',
     noCode: 'NESSUN CODICE', fellow: (n) => (n > 1 ? `${n} altri giocatori corrotti` : '1 altro giocatore corrotto') + ' (identità nascosta)', console: 'CONSOLE DI ANNULLAMENTO — INSERISCI 2 CODICI (8 CIFRE)', commit: 'CONFERMA',
     chkInfo: 'VERIFICA CODICE — prova UN codice di 4 cifre. Una volta per partita, dal DEFCON 4; non usa il tuo invio.', locked: (n) => `BLOCCATA fino al DEFCON ${n}`, chkBtn: 'VERIFICA', chkValid: 'VALIDO', chkInvalid: 'NON VALIDO', rejected: 'CODICI RIFIUTATI', attempts: 'tentativi:', disarmed: 'TESTATE DISINNESCATE', mission: 'Missione compiuta. Rivelazione finale:', failed: 'CODICE ERRATO — TESTATE A SEGNO', timeUp: 'TEMPO SCADUTO — TESTATE A SEGNO', missionFail: 'Missione fallita. Rivelazione finale:', loyalLow: 'leale',
-    fake: '(falso)', chatLogTitle: 'TUTTE LE CHAT DELLA PARTITA', sendLines: (n) => `INVIA LE MIE APERTURE E DOMANDE (${n})`, sendNote: 'Aiuta i bot a sembrare umani. Solo i tuoi messaggi, senza nomi.', sentLines: 'Inviato, grazie!', sendFail: 'Invio non riuscito, riprova.',destroyedLbl: 'DISTRUTTA', again: 'NUOVA PARTITA', music: (on) => (on ? 'MUSICA: SÌ' : 'MUSICA: NO'),
+    fake: '(falso)', chatLogTitle: 'TUTTE LE CHAT DELLA PARTITA', sendLines: (n) => `INVIA I MIEI MESSAGGI (${n})`, sendNote: 'Aiuta i bot a sembrare umani. Solo i tuoi messaggi, senza nomi.', sentLines: 'Inviato, grazie!', sendFail: 'Invio non riuscito, riprova.',destroyedLbl: 'DISTRUTTA', again: 'NUOVA PARTITA', music: (on) => (on ? 'MUSICA: SÌ' : 'MUSICA: NO'),
     'Game already started': 'Partita già iniziata', 'Room is full': 'Stanza piena', 'Room already has a host': 'La stanza ha già un host',
     pubName: 'PUBBLICA', pubInfo: 'Pubblica a tutti un estratto di un file. Puoi pubblicare solo file che Intelligence ti passa. Una volta per DEFCON.', pubUsed: 'Hai già pubblicato in questo DEFCON.', pubNone: 'Non hai file. Intelligence deve passartene uno.', pubPick: 'Scegli un file:', leakFile: 'PASSA FILE', leakUsed: 'Hai già passato un file in questo DEFCON.', leakNone: 'Nessun risultato. Intercetta prima una chat.', leakPick: 'Scegli un risultato da passare a Mass Media:', pubSend: 'PUBBLICA', pubShow: 'MOSTRA', pubRed: 'OSCURA', pubHide: 'ESCLUDI', pubRedA: (n) => 'Oscura identità: ' + n, pubRedB: (n) => 'Oscura identità: ' + n, pubRedBy: 'Oscura chi ha diffuso', leaksTitle: 'FUGHE DI NOTIZIE', leakBy: 'DIFFUSO DA', redacted: '█████',
     destroy: 'DISTRUGGI CHAT', destroyWait: "DISTRUGGI: in attesa dell'altro (annulla)", destroyAsk: "L'altro vuole distruggere questa chat. Premi per accettare.",
@@ -274,20 +274,21 @@ let linesSent = false;
 function myLines(s) {
   const names = s.reveal.map((r) => r.name).sort((a, b) => b.length - a.length);
   const clean = (x) => names.reduce((o, n) => o.split(n).join('{name}'), x.trim());
-  const openers = new Set(), questions = new Set();
+  const openers = new Set(), questions = new Set(), messages = new Set();
   for (const c of s.chatLog) c.msgs.forEach((m, i) => {
     if (!m.mine) return;
     const x = clean(m.text);
     if (x.length < 3 || x.length > 200) return;
     if (i === 0) openers.add(x);
     else if (x.includes('?')) questions.add(x);
+    else messages.add(x); // every other message of mine
   });
-  return { openers: [...openers], questions: [...questions] };
+  return { openers: [...openers], questions: [...questions], messages: [...messages] };
 }
 function sendLinesHtml(s) {
   if (!FORM_URL) return '';
   if (linesSent) return `<div class="lbl" style="margin-top:12px">${t('sentLines')}</div>`;
-  const l = myLines(s), n = l.openers.length + l.questions.length;
+  const l = myLines(s), n = l.openers.length + l.questions.length + l.messages.length;
   return n ? `<button id="sendlines" style="margin-top:12px">${t('sendLines', n)}</button><div class="lbl">${t('sendNote')}</div>` : '';
 }
 function wireSendLines(s) {
@@ -296,7 +297,9 @@ function wireSendLines(s) {
   b.onclick = async () => {
     b.disabled = true;
     try {
-      await fetch(FORM_URL, { method: 'POST', mode: 'no-cors', body: new URLSearchParams({ [FORM_ENTRY]: JSON.stringify({ v: 1, lang, ...myLines(s) }) }) });
+      const l = myLines(s), parts = [{ openers: l.openers, questions: l.questions }]; // several small submissions so none is too big for the form
+      for (let i = 0; i < l.messages.length; i += 8) parts.push({ messages: l.messages.slice(i, i + 8) });
+      for (const p of parts) await fetch(FORM_URL, { method: 'POST', mode: 'no-cors', body: new URLSearchParams({ [FORM_ENTRY]: JSON.stringify({ v: 1, lang, ...p }) }) });
       linesSent = true;
     } catch { b.disabled = false; alert(t('sendFail')); }
     render();

@@ -182,7 +182,7 @@ const groqKey = () => process.env.GROQ_API_KEY || (() => { try { return fs.readF
 const fakeCode = (real) => { let c; do c = code4(); while (c === real || room.realCodes.has(c)); return c; }; // a corrupt bot's one made-up code (never anyone's real code)
 // a few real player lines as style examples for the AI (never copied word for word)
 function styleExamples(lang) {
-  const all = [...(LEARNED.openers[lang] || []), ...(LEARNED.questions[lang] || [])];
+  const all = [...(LEARNED.openers[lang] || []), ...(LEARNED.questions[lang] || []), ...((LEARNED.messages || {})[lang] || [])];
   if (!all.length) return '';
   const ex = all.slice().sort(() => Math.random() - 0.5).slice(0, 6).map((x) => '- ' + x.replace(/\{name\}/g, 'someone'));
   return `Examples of how real players write in this game (copy the tone and length, not the words):\n${ex.join('\n')}\n`;
