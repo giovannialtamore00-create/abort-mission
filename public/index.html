@@ -32,21 +32,25 @@
   td { padding:5px 4px; border-bottom:1px solid var(--dim); }
   .err { color:var(--red); text-align:center; min-height:20px; }
   #chbtn { cursor:pointer; font-size:13px; letter-spacing:2px; border:1px solid var(--dim); padding:4px 8px; background:var(--panel); display:none; }
-  #chbtn.on, #rolesbtn.on { border-color:var(--g); background:#1b281f; }
+  #chbtn.on, #rolesbtn.on, #cardbtn.on { border-color:var(--g); background:#1b281f; }
   #chbtn b { color:#000; background:var(--amber); border-radius:10px; padding:0 7px; margin-left:6px; }
-  #chat { position:fixed; z-index:3; left:50%; transform:translateX(-50%); bottom:0; width:100%; max-width:480px; height:45vh; background:var(--panel); border:2px solid var(--g); display:none; flex-direction:column; }
-  #chat.open { display:flex; }
-  #chat .top { display:flex; justify-content:space-between; padding:8px 12px; border-bottom:1px solid var(--dim); letter-spacing:2px; }
-  #chat .top span { cursor:pointer; }
-  #chat button { width:auto; margin:0; padding:8px 14px; font-size:14px; }
+  #desk { position:fixed; inset:0; z-index:3; pointer-events:none; }
+  .win { position:absolute; pointer-events:auto; width:min(340px,calc(100vw - 16px)); max-height:calc(100vh - var(--tb,96px) - 10px); background:var(--panel); border:2px solid var(--dim); display:flex; flex-direction:column; box-shadow:0 6px 24px #000a; }
+  .win.front { border-color:var(--g); }
+  .win.thr, .win.hub { height:min(400px,calc(100vh - var(--tb,96px) - 10px)); }
+  .wtop { display:flex; justify-content:space-between; gap:8px; padding:8px 12px; border-bottom:1px solid var(--dim); letter-spacing:2px; font-size:13px; background:#16231a; cursor:move; user-select:none; touch-action:none; }
+  .wx { cursor:pointer; }
+  .wbody { flex:1; min-height:0; overflow:auto; display:flex; flex-direction:column; }
+  .win.thr .wbody { overflow:hidden; }
+  .win button { width:auto; margin:0; padding:8px 14px; font-size:14px; }
+  .win .card { border:none; }
+  .pname { font-size:18px; color:var(--amber); margin:-4px 0 10px; }
   .tabs { display:flex; gap:8px; padding:8px 12px; }
   .tabs button { flex:1; } .tabs button.on { background:var(--g); color:#000; }
   .rows { overflow:auto; }
-  #chlist { flex:1; min-height:0; overflow:auto; }
   .row { padding:10px 12px; border-bottom:1px solid var(--dim); cursor:pointer; display:flex; justify-content:space-between; }
   .row:hover { background:#1b281f; } .row small { color:var(--dim); } .dot { color:var(--amber); }
-  #chthread { display:none; flex-direction:column; flex:1; min-height:0; }
-  #chmsgs { flex:1; overflow:auto; padding:10px 12px; }
+  .cmsgs { flex:1; min-height:0; overflow:auto; padding:10px 12px; }
   .m { margin:6px 0; max-width:85%; padding:6px 10px; border:1px solid var(--dim); font-size:15px; word-wrap:break-word; }
   .m i { display:block; font-size:11px; color:var(--dim); font-style:normal; }
   .m.me { margin-left:auto; border-color:var(--g); }
@@ -58,7 +62,7 @@
   @keyframes pulse { 50% { box-shadow:0 0 12px var(--amber); } }
   body { padding-top:var(--tb,96px); }
   #tools { order:2; width:100%; display:flex; gap:6px; }
-  #rolesbtn { cursor:pointer; font-size:13px; letter-spacing:2px; border:1px solid var(--dim); padding:4px 8px; background:var(--panel); }
+  #rolesbtn, #cardbtn { cursor:pointer; font-size:13px; letter-spacing:2px; border:1px solid var(--dim); padding:4px 8px; background:var(--panel); }
   #comp { position:fixed; z-index:4; left:0; top:var(--tb,96px); bottom:0; width:min(320px,100vw); background:var(--panel); border:2px solid var(--g); display:none; flex-direction:column; }
   #comp.open { display:flex; }
   #comp .top { display:flex; justify-content:space-between; padding:8px 12px; border-bottom:1px solid var(--dim); letter-spacing:2px; } #comp .top span { cursor:pointer; }
@@ -66,11 +70,7 @@
   .crole { border:1px solid var(--dim); padding:8px 10px; margin:10px 0; } .crole.mine { border-color:var(--g); background:#16231a; }
   .crole .desc { margin:4px 0; }
   /* keep the game screen free: side panels on wide screens, bottom sheet with extra scroll room on narrow ones */
-  @media (min-width:900px) {
-    #chat { left:auto; right:0; transform:none; top:var(--tb,96px); bottom:0; height:auto; width:380px; max-width:none; }
-    body.chatopen { padding-right:400px; } body.compopen { padding-left:340px; }
-  }
-  @media (max-width:899px) { body.chatopen { padding-bottom:calc(45vh + 20px); } }
+  @media (min-width:900px) { body.compopen { padding-left:340px; } }
   #topbar { position:fixed; top:0; left:0; right:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--dim); padding:6px 10px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:6px; }
   #tbl { display:flex; gap:6px; }
   #defcon { order:3; width:100%; display:none; justify-content:center; align-items:center; gap:8px; }
@@ -103,7 +103,7 @@ const TX = {
     'Game already started': 'Game already started', 'Room is full': 'Room is full', 'Room already has a host': 'Room already has a host',
     pubName: 'PUBLISH', pubInfo: 'Publish an extract of a file to everyone. You can only publish files Intelligence leaks to you. Once per DEFCON.', pubUsed: 'Already published this DEFCON.', pubNone: 'You have no files. Intelligence must leak one to you.', pubPick: 'Choose a file:', leakFile: 'LEAK FILE', leakUsed: 'You already leaked a file this DEFCON.', leakNone: 'No findings yet. Wiretap a chat first.', leakPick: 'Choose a finding to leak to Mass Media:', pubSend: 'PUBLISH LEAK', pubShow: 'SHOW', pubRed: 'REDACT', pubHide: 'OMIT', pubRedA: (n) => 'Redact identity: ' + n, pubRedB: (n) => 'Redact identity: ' + n, pubRedBy: 'Redact who leaked it', leaksTitle: 'LEAKS', leakBy: 'LEAKED BY', redacted: '█████',
     destroy: 'DESTROY CHAT', destroyWait: 'DESTROY: waiting for the other side (cancel)', destroyAsk: 'The other side wants to destroy this chat. Press to agree.',
-    chat: 'CHAT', chatTitle: 'PRIVATE CHAT', byName: 'BY NAME', byRole: 'BY ROLE', back: '< BACK', placeholder: 'message...', sendBtn: 'SEND',
+    card: 'CARD', hub: 'CHAT HUB', chat: 'CHAT', chatTitle: 'PRIVATE CHAT', byName: 'BY NAME', byRole: 'BY ROLE', back: '< BACK', placeholder: 'message...', sendBtn: 'SEND',
     msg: 'msg', fresh: 'new', to: 'TO', youLbl: 'you', modeName: 'name', modeRole: 'role', sendAs: 'SEND AS', convos: 'CONVERSATIONS', newMsg: 'NEW MESSAGE', asLbl: 'as',
     empty: 'No messages yet. Sending the first one starts this chat.', left: (n) => `${n}/5 new chats left this DEFCON`, noLeft: 'No new chats left this DEFCON. Reply in your open chats or wait for DEFCON to drop.',
     ready: 'READY', defcon: 'DEFCON', final: 'FINAL STAGE', pause: 'PAUSE', resume: 'RESUME', paused: 'PAUSED', close: 'CLOSE MATCH', closeAsk: 'Close this match for everyone and go back to the lobby?',
@@ -136,7 +136,7 @@ const TX = {
     'Game already started': 'Partita già iniziata', 'Room is full': 'Stanza piena', 'Room already has a host': 'La stanza ha già un host',
     pubName: 'PUBBLICA', pubInfo: 'Pubblica a tutti un estratto di un file. Puoi pubblicare solo file che Intelligence ti passa. Una volta per DEFCON.', pubUsed: 'Hai già pubblicato in questo DEFCON.', pubNone: 'Non hai file. Intelligence deve passartene uno.', pubPick: 'Scegli un file:', leakFile: 'PASSA FILE', leakUsed: 'Hai già passato un file in questo DEFCON.', leakNone: 'Nessun risultato. Intercetta prima una chat.', leakPick: 'Scegli un risultato da passare a Mass Media:', pubSend: 'PUBBLICA', pubShow: 'MOSTRA', pubRed: 'OSCURA', pubHide: 'ESCLUDI', pubRedA: (n) => 'Oscura identità: ' + n, pubRedB: (n) => 'Oscura identità: ' + n, pubRedBy: 'Oscura chi ha diffuso', leaksTitle: 'FUGHE DI NOTIZIE', leakBy: 'DIFFUSO DA', redacted: '█████',
     destroy: 'DISTRUGGI CHAT', destroyWait: "DISTRUGGI: in attesa dell'altro (annulla)", destroyAsk: "L'altro vuole distruggere questa chat. Premi per accettare.",
-    chat: 'CHAT', chatTitle: 'CHAT PRIVATA', byName: 'PER NOME', byRole: 'PER RUOLO', back: '< INDIETRO', placeholder: 'messaggio...', sendBtn: 'INVIA',
+    card: 'CARTA', hub: 'CENTRO CHAT', chat: 'CHAT', chatTitle: 'CHAT PRIVATA', byName: 'PER NOME', byRole: 'PER RUOLO', back: '< INDIETRO', placeholder: 'messaggio...', sendBtn: 'INVIA',
     msg: 'msg', fresh: 'nuova', to: 'A', youLbl: 'tu', modeName: 'nome', modeRole: 'ruolo', sendAs: 'INVIA COME', convos: 'CONVERSAZIONI', newMsg: 'NUOVO MESSAGGIO', asLbl: 'come',
     empty: 'Nessun messaggio. Il primo messaggio avvia la chat.', left: (n) => `${n}/5 nuove chat rimaste in questo DEFCON`, noLeft: 'Nessuna nuova chat rimasta in questo DEFCON. Rispondi nelle chat aperte o aspetta il calo del DEFCON.',
     ready: 'PRONTO', defcon: 'DEFCON', final: 'FASE FINALE', pause: 'PAUSA', resume: 'RIPRENDI', paused: 'IN PAUSA', close: 'CHIUDI PARTITA', closeAsk: 'Chiudere la partita per tutti e tornare alla lobby?',
@@ -211,6 +211,7 @@ function cardHtml(c, partnerCount) {
   return `<div class="card ${c.corrupt ? 'corrupt' : ''}">
     <div class="lbl">${t('yourRole')}</div>
     <div class="role">${esc(rn(c.role))}</div>
+    <div class="pname">${esc(state.you)}</div>
     <span class="tag">${c.corrupt ? t('corrupt') : t('loyal')}</span>
     <p class="desc">${esc(TX[lang].desc[c.role] || c.desc)}</p>
     ${c.code ? `<div class="lbl">${t('abortCode')}</div><div class="code">${c.code}</div>` : `<div class="lbl">${t('noCode')}</div>`}
@@ -342,7 +343,6 @@ function renderMain() {
     h += `<div class="box"><div class="lbl">${t('lobby', s.names.length)}</div><div class="names">${s.names.map((n) => `<div>&gt; ${esc(n)}${n === s.you ? ' ' + t('you') : ''}</div>`).join('')}</div></div>`;
     h += s.host ? `<button id="start">${t('start')}</button>` : '<div class="sub">' + (s.hasHost ? t('waitHost') : t('noHost')) + '</div>';
   } else if (s.phase === 'play') {
-    h += cardHtml(s.card, s.partnerCount);
     if (s.tap) h += tapHtml(s.tap);
     if (s.card.role === 'Mass Media') h += pubHtml(s);
     if (s.emb) h += embHtml(s);
@@ -401,72 +401,126 @@ function renderMain() {
     if (typedChk && focusId === 'chkdigits') d.focus();
   }
 }
-// ---- private chat (only during play) ----
+// ---- desktop windows (only during play): player card, chat hub, one window per chat ----
 // each player has up to 10 chats: one per other player's name, one per other role
-document.getElementById('tools').insertAdjacentHTML('beforeend', '<div id="chbtn"><span id="chbtnl"></span><b id="chbadge" hidden></b></div>');
-document.body.insertAdjacentHTML('beforeend', `<div id="chat"><div class="top"><div id="chtitle"></div><span id="chclose">[X]</span></div>
-<div id="chlist"><div class="lbl" id="convlbl"></div><div class="rows" id="chconv"></div><div class="lbl" id="newlbl" style="margin-top:12px"></div><div class="tabs" id="astabs"><button id="asname"></button><button id="asrole"></button></div><div class="tabs"><button id="tabname"></button><button id="tabrole"></button></div><div class="rows" id="chrows"></div></div>
-<div id="chthread"><div class="tabs"><button id="chback"></button><button id="chkill"></button><button id="chleak"></button></div><div id="chleakbox"></div><div id="chmsgs"></div>
-<div class="send"><input type="text" id="chtext" maxlength="300" autocomplete="off"><button id="chsend"></button></div></div></div>`);
-let leakOpen = false;
-const ch = { open: false, mode: 'name', as: 'name', cur: null }, seen = {};
+document.getElementById('tools').insertAdjacentHTML('beforeend', '<div id="cardbtn"></div><div id="chbtn"><span id="chbtnl"></span><b id="chbadge" hidden></b></div>');
+document.body.insertAdjacentHTML('beforeend', '<div id="desk"></div>');
+const ch = { mode: 'name', as: 'name' }, seen = {}, wins = {}, known = new Set();
+let zTop = 10, cascade = 0, frontId = null, deskOn = false;
 const $c = (id) => document.getElementById(id);
 const threadOf = (as, mode, key) => (state.chats || []).find((x) => x.as === as && x.mode === mode && x.with === key);
 const myLab = (as) => (as === 'role' ? rn(state.card.role) : state.you);
 const unread = (x) => x ? x.msgs.slice(seen[x.id] || 0).filter((m) => !m.mine).length : 0;
-function renderChat() {
-  const on = state && state.phase === 'play' && state.chatNames;
-  $c('chbtn').style.display = on ? 'block' : 'none';
-  if (!on) { $c('chat').classList.remove('open'); document.body.classList.remove('chatopen'); return; }
-  $c('chbtnl').textContent = t('chat'); $c('tabname').textContent = t('byName'); $c('tabrole').textContent = t('byRole');
-  $c('chback').textContent = t('back'); $c('chtext').placeholder = t('placeholder'); $c('chsend').textContent = t('sendBtn');
-  if (ch.open && ch.cur) { const x = threadOf(ch.cur.as, ch.cur.mode, ch.cur.key); if (x) seen[x.id] = x.msgs.length; }
-  const total = (state.chats || []).reduce((n, x) => n + unread(x), 0);
-  $c('chbadge').hidden = !total; $c('chbadge').textContent = total;
-  $c('chat').classList.toggle('open', ch.open);
-  $c('chbtn').classList.toggle('on', ch.open); document.body.classList.toggle('chatopen', ch.open);
-  $c('chlist').style.display = ch.cur ? 'none' : 'block';
-  $c('chthread').style.display = ch.cur ? 'flex' : 'none';
+const thrId = (d) => 'c|' + d.as + '|' + d.mode + '|' + d.key;
+function raise(id) {
+  const w = wins[id]; if (!w) return;
+  w.el.style.zIndex = ++zTop; frontId = id;
+  Object.values(wins).forEach((o) => o.el.classList.toggle('front', o === w));
+}
+function closeWin(id) { const w = wins[id]; if (!w) return; w.el.remove(); delete wins[id]; if (frontId === id) frontId = null; renderChat(); }
+function openWin(id, cls, init) {
+  if (wins[id]) { raise(id); return wins[id]; }
+  const el = document.createElement('div'); el.className = 'win ' + cls;
+  el.innerHTML = '<div class="wtop"><span class="wt"></span><span class="wx">[X]</span></div><div class="wbody"></div>';
+  const w = wins[id] = { el, body: el.querySelector('.wbody'), title: el.querySelector('.wt') };
+  el.style.left = Math.max(8, Math.min(innerWidth - 348, 40 + cascade * 28)) + 'px';
+  el.style.top = document.getElementById('topbar').offsetHeight + 10 + cascade * 28 + 'px'; cascade = (cascade + 1) % 8;
+  $c('desk').appendChild(el); init(w);
+  el.addEventListener('mousedown', () => { raise(id); renderChat(); });
+  el.querySelector('.wx').onclick = () => closeWin(id);
+  const bar = el.querySelector('.wtop');
+  bar.onpointerdown = (e) => { // drag by the title bar
+    if (e.target.classList.contains('wx')) return;
+    const dx = e.clientX - el.offsetLeft, dy = e.clientY - el.offsetTop; bar.setPointerCapture(e.pointerId);
+    bar.onpointermove = (m) => {
+      el.style.left = Math.max(80 - el.offsetWidth, Math.min(innerWidth - 80, m.clientX - dx)) + 'px';
+      el.style.top = Math.max(document.getElementById('topbar').offsetHeight, Math.min(innerHeight - 40, m.clientY - dy)) + 'px';
+    };
+    bar.onpointerup = bar.onpointercancel = () => { bar.onpointermove = bar.onpointerup = bar.onpointercancel = null; };
+  };
+  raise(id);
+  return w;
+}
+function initHub(w) {
+  w.body.innerHTML = '<div class="lbl" id="convlbl" style="padding:8px 12px 0"></div><div class="rows" id="chconv"></div><div class="lbl" id="newlbl" style="margin:12px 12px 0"></div><div class="tabs" id="astabs"><button id="asname"></button><button id="asrole"></button></div><div class="tabs"><button id="tabname"></button><button id="tabrole"></button></div><div class="rows" id="chrows"></div>';
+  $c('tabname').onclick = () => { ch.mode = 'name'; renderChat(); };
+  $c('tabrole').onclick = () => { ch.mode = 'role'; renderChat(); };
+  $c('asname').onclick = () => { ch.as = 'name'; renderChat(); };
+  $c('asrole').onclick = () => { ch.as = 'role'; renderChat(); };
+  $c('chconv').onclick = $c('chrows').onclick = (e) => { const r = e.target.closest('.row'); if (!r) return; openThread({ as: r.dataset.as || ch.as, mode: r.dataset.mode || ch.mode, key: r.dataset.k }, true); };
+}
+function initThread(w, d) {
+  w.d = d; w.leakOpen = false;
+  w.body.innerHTML = '<div class="tabs"><button class="wkill"></button><button class="wleak"></button></div><div class="wleakbox"></div><div class="cmsgs"></div><div class="send"><input type="text" maxlength="300" autocomplete="off"><button class="wsend"></button></div>';
+  const inp = w.body.querySelector('input');
+  const go = () => { if (!inp.value.trim()) return; send({ type: 'chat', as: d.as, mode: d.mode, to: d.key, text: inp.value }); inp.value = ''; };
+  w.body.querySelector('.wsend').onclick = go;
+  inp.onkeydown = (e) => { if (e.key === 'Enter') go(); };
+}
+function openThread(d, focus) {
+  const w = openWin(thrId(d), 'thr', (nw) => initThread(nw, d));
+  renderChat();
+  if (focus) w.body.querySelector('input').focus();
+}
+function renderHub() {
+  if (!wins.hub) return;
+  wins.hub.title.textContent = t('hub');
+  $c('tabname').textContent = t('byName'); $c('tabrole').textContent = t('byRole');
   $c('convlbl').textContent = t('convos'); $c('newlbl').textContent = t('newMsg') + ' (' + t('left', state.chatsLeft) + ') — ' + t('sendAs');
   const surv = state.card.role === 'Designated Survivor'; // the Survivor can only write as their name
   if (surv) ch.as = 'name';
   $c('asrole').style.display = surv ? 'none' : '';
   $c('asname').textContent = myLab('name'); $c('asrole').textContent = myLab('role');
   $c('asname').classList.toggle('on', ch.as === 'name'); $c('asrole').classList.toggle('on', ch.as === 'role');
+  $c('tabname').classList.toggle('on', ch.mode === 'name'); $c('tabrole').classList.toggle('on', ch.mode === 'role');
   $c('chconv').innerHTML = (state.chats || []).filter((x) => x.msgs.length).map((x) => { const u = unread(x);
-    return `<div class="row" data-as="${x.as}" data-mode="${x.mode}" data-k="${esc(x.with)}"><span>${esc(lab(x.mode, x.with))} <small>(${t('asLbl')} ${esc(myLab(x.as))})</small></span><small>${x.msgs.length} ${t('msg')} ${u ? '<span class="dot">● ' + u + '</span>' : ''}</small></div>`; }).join('');
-  $c('tabname').classList.toggle('on', ch.mode === 'name');
-  $c('tabrole').classList.toggle('on', ch.mode === 'role');
-  $c('chtitle').textContent = ch.cur ? t('to') + ' ' + lab(ch.cur.mode, ch.cur.key).toUpperCase() + ' (' + t('asLbl') + ' ' + myLab(ch.cur.as).toUpperCase() + ')' : t('chatTitle');
+    return '<div class="row" data-as="' + x.as + '" data-mode="' + x.mode + '" data-k="' + esc(x.with) + '"><span>' + esc(lab(x.mode, x.with)) + ' <small>(' + t('asLbl') + ' ' + esc(myLab(x.as)) + ')</small></span><small>' + x.msgs.length + ' ' + t('msg') + ' ' + (u ? '<span class="dot">● ' + u + '</span>' : '') + '</small></div>'; }).join('');
   const keys = ch.mode === 'name' ? state.chatNames : state.chatRoles;
   $c('chrows').innerHTML = keys.map((k) => { const x = threadOf(ch.as, ch.mode, k), u = unread(x);
-    return `<div class="row" data-k="${esc(k)}"><span>${esc(lab(ch.mode, k))}</span><small>${x ? x.msgs.length + ' ' + t('msg') : t('fresh')} ${u ? '<span class="dot">● ' + u + '</span>' : ''}</small></div>`; }).join('');
-  if (ch.cur) {
-    const x = threadOf(ch.cur.as, ch.cur.mode, ch.cur.key), box = $c('chmsgs'), atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
-    box.innerHTML = x ? x.msgs.map((m) => `<div class="m ${m.mine ? 'me' : ''}"><i>${m.mine ? t('youLbl') : esc(lab(m.lm, m.label))}</i>${esc(m.text)}</div>`).join('') : `<div class="sub">${t(state.chatsLeft > 0 ? 'empty' : 'noLeft')}</div>`;
-    if (atEnd) box.scrollTop = box.scrollHeight;
-    const k = $c('chkill'); k.style.display = x && x.canKill ? '' : 'none';
-    if (x) { k.textContent = x.killMine ? t('destroyWait') : x.killOther ? t('destroyAsk') : t('destroy'); k.classList.toggle('on', x.killMine || x.killOther); k.onclick = () => send({ type: 'destroy', id: x.id }); }
-    // Intelligence: hand a finding to Mass Media from an open chat with them (the server ignores it for anyone else)
-    const lk = $c('chleak'), lb = $c('chleakbox'), isI = state.card.role === 'Intelligence' && x && x.msgs.length;
-    lk.style.display = isI ? '' : 'none'; lk.textContent = t('leakFile');
-    lb.innerHTML = isI && leakOpen ? (state.leakUsed ? `<div class="sub">${t('leakUsed')}</div>` : !(state.findings || []).length ? `<div class="sub">${t('leakNone')}</div>`
-      : `<div class="lbl">${t('leakPick')}</div>` + state.findings.map((f) => `<button class="tapopt leakpick" data-id="${f.id}">${esc(lab(f.am, f.a))} &harr; ${esc(lab(f.bm, f.b))} (${f.count})</button>`).join('')) : '';
-    lk.onclick = () => { leakOpen = !leakOpen; renderChat(); };
-    lb.querySelectorAll('.leakpick').forEach((b) => { b.onclick = () => { leakOpen = false; send({ type: 'leakfile', chat: x.id, finding: +b.dataset.id }); }; });
-  }
+    return '<div class="row" data-k="' + esc(k) + '"><span>' + esc(lab(ch.mode, k)) + '</span><small>' + (x ? x.msgs.length + ' ' + t('msg') : t('fresh')) + ' ' + (u ? '<span class="dot">● ' + u + '</span>' : '') + '</small></div>'; }).join('');
 }
-$c('chbtn').onclick = () => { ch.open = !ch.open; renderChat(); if (ch.open && innerWidth < 900) scrollTo(0, document.documentElement.scrollHeight); }; // phones: lift the card above the sheet
-$c('chclose').onclick = () => { ch.open = false; ch.cur = null; renderChat(); };
-$c('tabname').onclick = () => { ch.mode = 'name'; renderChat(); };
-$c('tabrole').onclick = () => { ch.mode = 'role'; renderChat(); };
-$c('asname').onclick = () => { ch.as = 'name'; renderChat(); };
-$c('asrole').onclick = () => { ch.as = 'role'; renderChat(); };
-$c('chback').onclick = () => { ch.cur = null; renderChat(); };
-$c('chconv').onclick = $c('chrows').onclick = (e) => { const r = e.target.closest('.row'); if (!r) return; ch.cur = { as: r.dataset.as || ch.as, mode: r.dataset.mode || ch.mode, key: r.dataset.k }; renderChat(); $c('chmsgs').scrollTop = 1e9; $c('chtext').focus(); };
-const sendChat = () => { const i = $c('chtext'); if (!i.value.trim() || !ch.cur) return; send({ type: 'chat', as: ch.cur.as, mode: ch.cur.mode, to: ch.cur.key, text: i.value }); i.value = ''; };
-$c('chsend').onclick = sendChat;
-$c('chtext').onkeydown = (e) => { if (e.key === 'Enter') sendChat(); };
+function renderThreadWin(w) {
+  const d = w.d, x = threadOf(d.as, d.mode, d.key), u = unread(x), q = (s) => w.body.querySelector(s);
+  w.title.textContent = t('to') + ' ' + lab(d.mode, d.key).toUpperCase() + ' (' + t('asLbl') + ' ' + myLab(d.as).toUpperCase() + ')' + (u ? ' ● ' + u : '');
+  q('input').placeholder = t('placeholder'); q('.wsend').textContent = t('sendBtn');
+  const box = q('.cmsgs'), atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+  box.innerHTML = x ? x.msgs.map((m) => '<div class="m ' + (m.mine ? 'me' : '') + '"><i>' + (m.mine ? t('youLbl') : esc(lab(m.lm, m.label))) + '</i>' + esc(m.text) + '</div>').join('') : '<div class="sub">' + t(state.chatsLeft > 0 ? 'empty' : 'noLeft') + '</div>';
+  if (atEnd) box.scrollTop = box.scrollHeight;
+  const k = q('.wkill'); k.style.display = x && x.canKill ? '' : 'none';
+  if (x) { k.textContent = x.killMine ? t('destroyWait') : x.killOther ? t('destroyAsk') : t('destroy'); k.classList.toggle('on', x.killMine || x.killOther); k.onclick = () => send({ type: 'destroy', id: x.id }); }
+  // Intelligence: hand a finding to Mass Media from an open chat with them (the server ignores it for anyone else)
+  const lk = q('.wleak'), lb = q('.wleakbox'), isI = state.card.role === 'Intelligence' && x && x.msgs.length;
+  lk.style.display = isI ? '' : 'none'; lk.textContent = t('leakFile');
+  lb.innerHTML = isI && w.leakOpen ? (state.leakUsed ? '<div class="sub">' + t('leakUsed') + '</div>' : !(state.findings || []).length ? '<div class="sub">' + t('leakNone') + '</div>'
+    : '<div class="lbl">' + t('leakPick') + '</div>' + state.findings.map((f) => '<button class="tapopt leakpick" data-id="' + f.id + '">' + esc(lab(f.am, f.a)) + ' &harr; ' + esc(lab(f.bm, f.b)) + ' (' + f.count + ')</button>').join('')) : '';
+  lk.onclick = () => { w.leakOpen = !w.leakOpen; renderChat(); };
+  lb.querySelectorAll('.leakpick').forEach((b) => { b.onclick = () => { w.leakOpen = false; send({ type: 'leakfile', chat: x.id, finding: +b.dataset.id }); }; });
+}
+function renderChat() {
+  const on = state && state.phase === 'play' && state.chatNames;
+  $c('chbtn').style.display = on ? 'block' : 'none'; $c('cardbtn').style.display = on ? 'block' : 'none';
+  if (!on) { Object.keys(wins).forEach((i) => { wins[i].el.remove(); delete wins[i]; }); deskOn = false; known.clear(); frontId = null; return; }
+  if (!deskOn) { // match start: card and hub on the desk
+    deskOn = true; cascade = 0;
+    openWin('card', 'cardwin', () => {}); openWin('hub', 'hub', initHub);
+    (state.chats || []).forEach((x) => known.add(x.id));
+  }
+  for (const x of state.chats || []) { // a chat someone else started: its window pops up on top
+    if (known.has(x.id)) continue;
+    known.add(x.id);
+    if (x.msgs.some((m) => !m.mine)) { const d = { as: x.as, mode: x.mode, key: x.with }; openWin(thrId(d), 'thr', (nw) => initThread(nw, d)); }
+  }
+  if (frontId && wins[frontId] && wins[frontId].d) { const d = wins[frontId].d, x = threadOf(d.as, d.mode, d.key); if (x) seen[x.id] = x.msgs.length; } // the front chat window counts as read
+  const total = (state.chats || []).reduce((n, x) => n + unread(x), 0);
+  $c('chbadge').hidden = !total; $c('chbadge').textContent = total;
+  $c('chbtnl').textContent = t('chat'); $c('cardbtn').textContent = t('card');
+  $c('chbtn').classList.toggle('on', !!wins.hub); $c('cardbtn').classList.toggle('on', !!wins.card);
+  if (wins.card) { wins.card.title.textContent = t('card'); wins.card.body.innerHTML = cardHtml(state.card, state.partnerCount); }
+  renderHub();
+  Object.values(wins).forEach((w) => { if (w.d) renderThreadWin(w); });
+}
+$c('chbtn').onclick = () => { if (wins.hub) closeWin('hub'); else { openWin('hub', 'hub', initHub); renderChat(); } };
+$c('cardbtn').onclick = () => { if (wins.card) closeWin('card'); else { openWin('card', 'cardwin', () => {}); renderChat(); } };
 // sound effects (made in the browser, no files): data tick on an incoming chat message, alarm when DEFCON changes
 let actx;
 const ac = () => actx || (actx = new (window.AudioContext || window.webkitAudioContext)());
