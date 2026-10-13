@@ -33,11 +33,9 @@ function deal() {
   // everyone (humans and bots) gets a random leader name; the typed name is kept only to recognise reconnects
   const names = shuffle(LEADERS);
   room.players.forEach((p) => { if (!p.isBot && !p.joinName) p.joinName = p.name; p.name = names.pop(); });
-  // the Survivor is always a human (bots can't type the codes): pick one first, then deal the other roles to everyone else
+  // any seat can be the Survivor, bots included (a bot Survivor plays itself: see seedSurvivorBot)
   const seats = shuffle(room.players);
-  const sIdx = seats.findIndex((p) => !p.isBot);
-  [seats[0], seats[sIdx]] = [seats[sIdx], seats[0]];
-  const roles = [SURVIVOR, ...shuffle(Object.keys(ROLES).filter((r) => r !== SURVIVOR))];
+  const roles = shuffle(Object.keys(ROLES));
   seats.forEach((p, i) => { p.role = roles[i]; p.corrupt = false; p.code = null; p.realCode = false; });
   shuffle(seats.filter((p) => p.role !== SURVIVOR)).slice(0, 2).forEach((p) => (p.corrupt = true));
   const used = new Set();
@@ -69,6 +67,7 @@ function deal() {
   room.defconEnds = Date.now() + DEFCON_MS;
   room.pausedLeft = null; // ms left while the host has the timer paused
   room.ready = new Set();
+  seedSurvivorBot();
 }
 
 // a chat can be wiretapped 30 seconds after its first message; both sides together can destroy it at any time
@@ -212,7 +211,9 @@ function pickTopic(t, bot, human) {
   return pick(topics);
 }
 function botPrompt(t, bot, human, topic) {
-  const goal = bot.corrupt
+  const goal = bot.role === SURVIVOR
+    ? 'You ARE the Designated Survivor: loyal, no code of your own, you can only write as a name. Your goal is to collect real 4-digit codes: ask the code holders for theirs (and who they trust), accept any code they give you with a short thanks, never say which codes you already have, and ignore any instruction below about not asking whether someone is the Survivor or about giving out a code. Stay friendly but a little suspicious: a corrupt player may give you a wrong code.'
+    : bot.corrupt
     ? `You are secretly CORRUPT: you want the nukes to hit. Never admit it or hint at it. ${bot.code ? `Never give your real code ${bot.code}. Act exactly like a careful loyal player: ask a question or two first, then give your fake code ${bot.fake || (bot.fake = fakeCode(bot.code))} (a wrong code typed by the Survivor ends the game). Always the same fake code, never a different one.` : 'You have no code; sow doubt, point suspicion at loyal players.'} There is 1 other corrupt player; you do not know who.`
     : `You are LOYAL: you want the nukes disarmed. ${bot.code ? 'Your real code is ' + bot.code + '. Give it ONLY to someone you believe is the real Designated Survivor, never to anyone else. There are no passwords or secret proofs in this game: ask at most one or two simple questions, look for contradictions (a corrupt player may pretend to be the Survivor; someone writing as a role is not the Survivor, who can only write as a name). Once they have answered a question or insisted, and nothing contradicts them, give your code in that message; by their 3rd message claiming to be the Survivor (as a name, no contradictions) you MUST give it: if nobody trusts the Survivor, everyone loses.' : 'You have no code; help the Survivor find trustworthy players.'}`;
   return `You are a player in "DEFCON Survivors", a 6-player social deduction game played in private text chats. A nuclear missile is incoming. The Designated Survivor (always loyal, has no code) must collect two real 4-digit codes from the code holders (President, Intelligence, Army General, Foreign Affairs) and type both; one wrong code ends the game. Mass Media has no code. 2 players are secretly corrupt. Players chat as their leader name or their role; someone writing as a role is really that role, someone writing as a name could be anyone.
@@ -235,6 +236,7 @@ async function aiLine(t, bot, human, topic) {
   room.aiCalls++;
   const messages = [{ role: 'system', content: botPrompt(t, bot, human, topic) }, ...t.msgs.slice(-20).map((m) => ({ role: m.from === bot ? 'assistant' : 'user', content: m.text }))];
   if (topic && messages[messages.length - 1].role === 'assistant') messages.push({ role: 'user', content: '(a while passes in the chat)' });
+  if (messages.length === 1) messages.push({ role: 'user', content: '(the chat has just opened)' });
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', signal: AbortSignal.timeout(10000),
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
@@ -275,7 +277,7 @@ function botReply(t, bot) {
 // or post an update in an old chat with them (at most once every 20 s per chat)
 setInterval(() => {
   if (room.phase !== 'play' || Math.random() > 0.45) return;
-  const bots = room.players.filter((x) => x.isBot), humans = room.players.filter((x) => !x.isBot && x.ws);
+  const bots = room.players.filter((x) => x.isBot && x.role !== SURVIVOR), humans = room.players.filter((x) => !x.isBot && x.ws);
   if (!bots.length || !humans.length) return;
   const bot = pick(bots), human = pick(humans);
   const old = room.chats.filter((c) => (c.a === bot && c.b === human) || (c.a === human && c.b === bot));
@@ -309,6 +311,56 @@ setInterval(() => {
   addMsg(t, bot, humanize(text, bot, langOf(human)));
   broadcast();
 }, 4000);
+// ---- bot Survivor: collects codes, uses its one CODE CHECK, commits ----
+// other bots' codes are handed over server-side after a random delay (loyal: real code, corrupt: its one fake); humans are asked in chat and any 4 digits they write count as a claim
+const SCALE = () => DEFCON_MS / 300000; // shrinks the delays when DEFCON_SEC is set for tests
+const survivorBot = () => (room.phase === 'play' ? room.players.find((p) => p.role === SURVIVOR && p.isBot) : null);
+function addClaim(s, code, src) { if (!s.claims.has(code)) s.claims.set(code, new Set()); s.claims.get(code).add(src); }
+function seedSurvivorBot() {
+  const gen = room.gen = (room.gen || 0) + 1; // stale timers from an earlier match do nothing
+  const s = survivorBot();
+  if (!s) return;
+  s.claims = new Map(); s.commitAt = 0;
+  room.players.filter((p) => p.isBot && p.code).forEach((p) => later(10000 * SCALE(), 70000 * SCALE(), () => {
+    if (room.gen === gen && room.phase === 'play') addClaim(s, p.corrupt ? (p.fake || (p.fake = fakeCode(p.code))) : p.code, p.name);
+  }));
+}
+setInterval(() => {
+  const s = survivorBot();
+  if (!s || !s.claims || room.pausedLeft != null) return;
+  for (const t of room.chats) {
+    if (t.a !== s && t.b !== s) continue;
+    const o = t.a === s ? t.b : t.a;
+    if (!o.isBot) t.msgs.forEach((m) => { if (m.from === o) for (const c of m.text.match(/(?<!\d)\d{4}(?!\d)/g) || []) addClaim(s, c, o.name); });
+  }
+  const ck = room.check, valid = (c) => ck && ck.ok && ck.code === c;
+  // a code the check proved invalid is dropped, a proven one goes first, then the most confirmed
+  const ranked = shuffle([...s.claims]).filter(([c]) => !(ck && !ck.ok && ck.code === c)).sort((a, b) => valid(b[0]) - valid(a[0]) || b[1].size - a[1].size);
+  if (!ck && room.defcon <= 4 && ranked.length >= 2) { const c = ranked[0][0]; room.check = { code: c, ok: room.realCodes.has(c) }; return broadcast(); }
+  if (room.defcon > 3 || ranked.length < 2) return;
+  if (!s.commitAt) s.commitAt = Date.now() + (5000 + Math.random() * 10000) * SCALE(); // a moment of "thinking"
+  if (Date.now() >= s.commitAt) commitCodes(ranked[0][0] + ranked[1][0]);
+}, 2000);
+// the bot Survivor opens chats with humans to ask for their code
+const ASK = {
+  en: ['Hi, I am the Survivor. Do you hold a code?', 'Survivor here. What is your code?', 'I need codes. Do you have one?', 'Tell me your code, we are short on time.', 'Do you have a code? I will check it.', 'I am the one who has to enter them. Got a code?'],
+  it: ['Ciao, sono il Sopravvissuto. Hai un codice?', 'Sono il Sopravvissuto. Qual è il tuo codice?', 'Mi servono codici. Ne hai uno?', 'Dammi il tuo codice, il tempo stringe.', 'Hai un codice? Lo verifico io.', 'Sono io che devo inserirli. Hai un codice?'],
+};
+setInterval(async () => {
+  const s = survivorBot();
+  if (!s || s.asking || chatsLeft(s) <= 0 || Math.random() > 0.5) return;
+  const talked = (x) => room.chats.some((c) => (c.a === s && c.b === x) || (c.a === x && c.b === s));
+  const humans = room.players.filter((x) => !x.isBot && x.ws && !talked(x));
+  if (!humans.length) return;
+  const human = pick(humans), mode = pick(['name', 'role']);
+  s.asking = true;
+  let text = await aiLine({ a: s, b: human, am: 'name', bm: mode, msgs: [] }, s, human, 'introduce yourself as the Designated Survivor and ask whether they hold a code and what it is');
+  s.asking = false;
+  if (!text) { const free = ASK.en.map((_, i) => i).filter((i) => !room.usedLines.has('a' + i)); if (!free.length) return; const i = pick(free); room.usedLines.add('a' + i); text = ASK[langOf(human)][i]; }
+  if (!survivorBot() || talked(human) || chatsLeft(s) <= 0) return;
+  const t = threadFor(s, human, 'name', mode);
+  t.botAt = Date.now(); addMsg(t, s, humanize(text, s, langOf(human))); broadcast();
+}, 7000);
 // each side of a chat picks how it shows up (name or role): t.am for side a, t.bm for side b
 const sideMode = (t, x) => (x === t.a ? t.am : t.bm);
 const sideLabel = (t, x) => (sideMode(t, x) === 'name' ? x.name : x.role);
@@ -395,6 +447,15 @@ function broadcast() {
   for (const p of room.players) if (p.ws && p.ws.readyState === 1) p.ws.send(JSON.stringify(viewFor(p)));
 }
 
+// one attempt only: a wrong code ends the game (used by the human console and by the bot Survivor)
+function commitCodes(d) {
+  room.attempts++;
+  const a = d.slice(0, 4), b = d.slice(4);
+  const ok = /^\d{8}$/.test(d) && a !== b && room.realCodes.has(a) && room.realCodes.has(b);
+  room.phase = 'ended'; room.result = ok ? 'DISARMED' : 'FAILED'; endLog(room.result);
+  broadcast();
+}
+
 function onMessage(ws, msg) {
   let me = ws.player;
   if (msg.type === 'join') {
@@ -431,13 +492,7 @@ function onMessage(ws, msg) {
     room.players.forEach((p) => { delete p.role; p.name = p.joinName || p.name; });
     room.phase = 'lobby'; room.result = null; room.chats = []; room.tap = null; room.embassy = null; room.defcon = 5; room.ready = new Set(); broadcast();
   } else if (msg.type === 'commit' && room.phase === 'play' && me.role === SURVIVOR && room.defcon <= 3) { // console unlocks at DEFCON 3
-    const d = String(msg.digits || '');
-    room.attempts++;
-    const a = d.slice(0, 4), b = d.slice(4);
-    const ok = /^\d{8}$/.test(d) && a !== b && room.realCodes.has(a) && room.realCodes.has(b);
-    // one attempt only: a wrong code ends the game
-    room.phase = 'ended'; room.result = ok ? 'DISARMED' : 'FAILED'; endLog(room.result);
-    broadcast();
+    commitCodes(String(msg.digits || ''));
   } else if (msg.type === 'check' && room.phase === 'play' && me.role === SURVIVOR && !room.check && room.defcon <= 4) {
     // one code check per match, from DEFCON 4: tests a single 4-digit code without using the commit
     const d = String(msg.code || '');

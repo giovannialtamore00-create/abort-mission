@@ -100,3 +100,11 @@ Bot strategy to-do: Survivor (keep a claims table per source, use the check on t
 - Replies average ~5 words per sentence. Early in a chat (under 6 messages): mostly 1-4 word one-liners. Established chats: one-liners, one short sentence, or 1-2 sentences up to ~15 words. Hard cap 20 words.
 - In established chats, 30% of replies (and quiet old chats after 45 s) bring a new topic: news, gossip about a named player, distrust, leaks/publish, wiretap, time pressure, and (DEFCON 4/3) asking if the survivor did the code check / entered codes.
 - Test (port 3052, 11 messages): bot replies 1-6 words, one topic line at message 22 ("time's running out, defcon dropping fast. what's our plan now?").
+
+## Bot Survivor (M32, 2026-10-14)
+Any seat can be the Designated Survivor, bots included (before: always a human).
+- Other bots hand their code to a bot Survivor server-side, 10-70 s after the match starts (loyal: real code, corrupt: its one fake). No chat is shown for this.
+- It opens chats with humans (as a name only) asking for a code (Groq line, fixed lines if no key); any 4 digits a human writes in a chat with it count as a code claim. Replies use the normal bot reply path with a Survivor goal in botPrompt.
+- CODE CHECK: used on the best-supported code as soon as it has 2 candidates (from DEFCON 4). A code the check proves invalid is dropped, a proven one goes first.
+- COMMIT: from DEFCON 3, as soon as it has 2 candidates, after a short random "thinking" delay; ranked by check result, then number of different sources. One attempt, like a human. With fewer than 2 candidates it waits (timeout = NUKES HIT).
+- Test (port 3071, DEFCON_SEC=8, 1 scripted human who replies with its own code): 8 bot-Survivor matches: 5 DISARMED, 3 FAILED, no hangs, no server errors. Open question: win rate balance and whether humans can tell the Survivor is a bot.
