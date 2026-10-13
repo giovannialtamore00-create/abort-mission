@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <title>DEFCON Survivors</title>
 <style>
   :root { --bg:#0b0f0c; --panel:#121a14; --g:#38ff7a; --dim:#2a6b43; --red:#ff4545; --amber:#ffb020; }
@@ -80,6 +80,28 @@
   .dl.d5.on { background:#e8e8e8; border-color:#e8e8e8; color:#000; } .dl.d4.on { background:#38ff7a; border-color:#38ff7a; }
   .dl.d3.on { background:#ffd020; border-color:#ffd020; } .dl.d2.on { background:#ff8c1a; border-color:#ff8c1a; } .dl.d1.on { background:#ff4545; border-color:#ff4545; }
   #readybtn { width:auto; margin:0; padding:6px 12px; font-size:14px; } #readybtn.isready { background:var(--g); color:#000; }
+  /* ---- phone layout: fixed screen, role panel by default, chat list + chats as full-screen WhatsApp-style views ---- */
+  .av { display:none; }
+  .rm { flex:1; min-width:0; display:flex; flex-direction:column; } .rm small { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .rr { flex:none; }
+  body.mob { padding:0; display:block; min-height:0; height:100dvh; overflow:hidden; }
+  body.mob #app { position:fixed; left:0; right:0; top:var(--tb,96px); bottom:0; max-width:none; overflow:auto; padding:12px 12px 80px; }
+  body.mob.hasdef #app > h1, body.mob.hasdef #app > .sub { display:none; }
+  body.mob #topbar { padding:4px 8px; gap:4px; }
+  body.mob #defcon { order:-1; flex-wrap:wrap; gap:4px; } body.mob .dl { width:28px; font-size:16px; }
+  body.mob #tbl input[type=range] { width:56px !important; }
+  body.mob #tools { order:2; width:auto; } body.mob #cardbtn { display:none !important; }
+  body.mob #comp { width:100vw; }
+  body.mob #chbtn { position:fixed; left:0; right:0; bottom:0; text-align:center; font-size:18px; padding:16px; border:none; border-top:2px solid var(--g); background:#16231a; }
+  body.mob .win { left:0 !important; right:0; top:var(--tb,96px) !important; bottom:0; width:auto; height:auto !important; max-height:none; border:none; box-shadow:none; }
+  body.mob .wtop { cursor:default; font-size:15px; padding:12px; align-items:center; }
+  body.mob .wt { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:bold; }
+  body.mob .wx { order:-1; font-size:0; } body.mob .wx::before { content:'\2039'; font-size:30px; line-height:20px; padding-right:6px; }
+  body.mob .row { align-items:center; gap:12px; padding:12px; }
+  body.mob .av { display:flex; width:42px; height:42px; flex:none; border-radius:50%; background:#1b3a27; border:1px solid var(--dim); align-items:center; justify-content:center; font-weight:bold; }
+  body.mob .rm b { text-transform:uppercase; }
+  body.mob .win.thr .cmsgs { background:#0e1510; }
+  body.mob .m { border:none; border-radius:12px 12px 12px 2px; background:#1a2a20; max-width:80%; }
+  body.mob .m.me { border-radius:12px 12px 2px 12px; background:#14502c; }
 </style>
 </head>
 <body>
@@ -191,6 +213,10 @@ document.body.insertAdjacentHTML('afterbegin', '<div id="topbar"><div id="tbl"><
 document.getElementById('tbl').append(langBtn, muteBtn, vol);
 paintBar();
 
+const mq = window.matchMedia('(max-width:700px)'), isMob = () => mq.matches;
+const setMob = () => document.body.classList.toggle('mob', isMob());
+setMob(); mq.onchange = () => { setMob(); render(); };
+
 function connect(name, host, code) {
   startMusic();
   ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host);
@@ -214,6 +240,7 @@ function cardHtml(c, partnerCount) {
     <div class="pname">${esc(state.you)}</div>
     <span class="tag">${c.corrupt ? t('corrupt') : t('loyal')}</span>
     <p class="desc">${esc(TX[lang].desc[c.role] || c.desc)}</p>
+    <p class="desc">${esc(TX[lang].abil[c.role] || '')}</p>
     ${c.code ? `<div class="lbl">${t('abortCode')}</div><div class="code">${c.code}</div>` : `<div class="lbl">${t('noCode')}</div>`}
     ${partnerCount ? `<p class="desc">${t('fellow', partnerCount)}</p>` : ''}
   </div>`;
@@ -343,6 +370,7 @@ function renderMain() {
     h += `<div class="box"><div class="lbl">${t('lobby', s.names.length)}</div><div class="names">${s.names.map((n) => `<div>&gt; ${esc(n)}${n === s.you ? ' ' + t('you') : ''}</div>`).join('')}</div></div>`;
     h += s.host ? `<button id="start">${t('start')}</button>` : '<div class="sub">' + (s.hasHost ? t('waitHost') : t('noHost')) + '</div>';
   } else if (s.phase === 'play') {
+    if (isMob()) h += `<div class="box" style="padding:0">${cardHtml(s.card, s.partnerCount)}</div>`; // phone: the role panel is the home screen
     if (s.tap) h += tapHtml(s.tap);
     if (s.card.role === 'Mass Media') h += pubHtml(s);
     if (s.emb) h += embHtml(s);
@@ -431,7 +459,7 @@ function openWin(id, cls, init) {
   el.querySelector('.wx').onclick = () => closeWin(id);
   const bar = el.querySelector('.wtop');
   bar.onpointerdown = (e) => { // drag by the title bar
-    if (e.target.classList.contains('wx')) return;
+    if (isMob() || e.target.classList.contains('wx')) return;
     const dx = e.clientX - el.offsetLeft, dy = e.clientY - el.offsetTop; bar.setPointerCapture(e.pointerId);
     bar.onpointermove = (m) => {
       el.style.left = Math.max(80 - el.offsetWidth, Math.min(innerWidth - 80, m.clientX - dx)) + 'px';
@@ -475,10 +503,10 @@ function renderHub() {
   $c('asname').classList.toggle('on', ch.as === 'name'); $c('asrole').classList.toggle('on', ch.as === 'role');
   $c('tabname').classList.toggle('on', ch.mode === 'name'); $c('tabrole').classList.toggle('on', ch.mode === 'role');
   setHtml($c('chconv'), (state.chats || []).filter((x) => x.msgs.length).map((x) => { const u = unread(x);
-    return '<div class="row" data-as="' + x.as + '" data-mode="' + x.mode + '" data-k="' + esc(x.with) + '"><span>' + esc(lab(x.mode, x.with)) + ' <small>(' + t('asLbl') + ' ' + esc(myLab(x.as)) + ')</small></span><small>' + x.msgs.length + ' ' + t('msg') + ' ' + (u ? '<span class="dot">● ' + u + '</span>' : '') + '</small></div>'; }).join(''));
+    return '<div class="row" data-as="' + x.as + '" data-mode="' + x.mode + '" data-k="' + esc(x.with) + '"><span class="av">' + esc(lab(x.mode, x.with).charAt(0).toUpperCase()) + '</span><span class="rm"><b>' + esc(lab(x.mode, x.with)) + ' <small>(' + t('asLbl') + ' ' + esc(myLab(x.as)) + ')</small></b><small>' + (x.msgs[x.msgs.length - 1].mine ? t('youLbl') + ': ' : '') + esc(x.msgs[x.msgs.length - 1].text) + '</small></span><small class="rr">' + (u ? '<span class="dot">● ' + u + '</span>' : x.msgs.length + ' ' + t('msg')) + '</small></div>'; }).join(''));
   const keys = ch.mode === 'name' ? state.chatNames : state.chatRoles;
   setHtml($c('chrows'), keys.map((k) => { const x = threadOf(ch.as, ch.mode, k), u = unread(x);
-    return '<div class="row" data-k="' + esc(k) + '"><span>' + esc(lab(ch.mode, k)) + '</span><small>' + (x ? x.msgs.length + ' ' + t('msg') : t('fresh')) + ' ' + (u ? '<span class="dot">● ' + u + '</span>' : '') + '</small></div>'; }).join(''));
+    return '<div class="row" data-k="' + esc(k) + '"><span class="av">' + esc(lab(ch.mode, k).charAt(0).toUpperCase()) + '</span><span class="rm"><b>' + esc(lab(ch.mode, k)) + '</b></span><small class="rr">' + (x ? x.msgs.length + ' ' + t('msg') : t('fresh')) + ' ' + (u ? '<span class="dot">● ' + u + '</span>' : '') + '</small></div>'; }).join(''));
 }
 function renderThreadWin(w) {
   const d = w.d, x = threadOf(d.as, d.mode, d.key), u = unread(x), q = (s) => w.body.querySelector(s);
@@ -501,17 +529,17 @@ function renderThreadWin(w) {
 }
 function renderChat() {
   const on = state && state.phase === 'play' && state.chatNames;
-  $c('chbtn').style.display = on ? 'block' : 'none'; $c('cardbtn').style.display = on ? 'block' : 'none';
+  $c('chbtn').style.display = on && !(isMob() && (wins.hub || compOpen)) ? 'block' : 'none'; $c('cardbtn').style.display = on ? 'block' : 'none';
   if (!on) { Object.keys(wins).forEach((i) => { wins[i].el.remove(); delete wins[i]; }); deskOn = false; known.clear(); frontId = null; return; }
   if (!deskOn) { // match start: card and hub on the desk
     deskOn = true; cascade = 0;
-    openWin('card', 'cardwin', () => {}); openWin('hub', 'hub', initHub);
+    if (!isMob()) { openWin('card', 'cardwin', () => {}); openWin('hub', 'hub', initHub); }
     (state.chats || []).forEach((x) => known.add(x.id));
   }
   for (const x of state.chats || []) { // a chat someone else started: its window pops up on top
     if (known.has(x.id)) continue;
     known.add(x.id);
-    if (x.msgs.some((m) => !m.mine)) { const d = { as: x.as, mode: x.mode, key: x.with }; openWin(thrId(d), 'thr', (nw) => initThread(nw, d)); }
+    if (!isMob() && x.msgs.some((m) => !m.mine)) { const d = { as: x.as, mode: x.mode, key: x.with }; openWin(thrId(d), 'thr', (nw) => initThread(nw, d)); }
   }
   if (frontId && wins[frontId] && wins[frontId].d) { const d = wins[frontId].d, x = threadOf(d.as, d.mode, d.key); if (x) seen[x.id] = x.msgs.length; } // the front chat window counts as read
   const total = (state.chats || []).reduce((n, x) => n + unread(x), 0);
