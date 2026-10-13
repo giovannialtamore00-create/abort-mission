@@ -411,6 +411,7 @@ const $c = (id) => document.getElementById(id);
 const threadOf = (as, mode, key) => (state.chats || []).find((x) => x.as === as && x.mode === mode && x.with === key);
 const myLab = (as) => (as === 'role' ? rn(state.card.role) : state.you);
 const unread = (x) => x ? x.msgs.slice(seen[x.id] || 0).filter((m) => !m.mine).length : 0;
+const setHtml = (el, html) => { if (el.innerHTML !== html) el.innerHTML = html; }; // never rebuild identical content: a rebuild between mousedown and mouseup swallows the click
 const thrId = (d) => 'c|' + d.as + '|' + d.mode + '|' + d.key;
 function raise(id) {
   const w = wins[id]; if (!w) return;
@@ -426,7 +427,7 @@ function openWin(id, cls, init) {
   el.style.left = Math.max(8, Math.min(innerWidth - 348, 40 + cascade * 28)) + 'px';
   el.style.top = document.getElementById('topbar').offsetHeight + 10 + cascade * 28 + 'px'; cascade = (cascade + 1) % 8;
   $c('desk').appendChild(el); init(w);
-  el.addEventListener('mousedown', () => { raise(id); renderChat(); });
+  el.addEventListener('mousedown', () => { if (frontId === id) return; raise(id); renderChat(); });
   el.querySelector('.wx').onclick = () => closeWin(id);
   const bar = el.querySelector('.wtop');
   bar.onpointerdown = (e) => { // drag by the title bar
@@ -473,26 +474,28 @@ function renderHub() {
   $c('asname').textContent = myLab('name'); $c('asrole').textContent = myLab('role');
   $c('asname').classList.toggle('on', ch.as === 'name'); $c('asrole').classList.toggle('on', ch.as === 'role');
   $c('tabname').classList.toggle('on', ch.mode === 'name'); $c('tabrole').classList.toggle('on', ch.mode === 'role');
-  $c('chconv').innerHTML = (state.chats || []).filter((x) => x.msgs.length).map((x) => { const u = unread(x);
-    return '<div class="row" data-as="' + x.as + '" data-mode="' + x.mode + '" data-k="' + esc(x.with) + '"><span>' + esc(lab(x.mode, x.with)) + ' <small>(' + t('asLbl') + ' ' + esc(myLab(x.as)) + ')</small></span><small>' + x.msgs.length + ' ' + t('msg') + ' ' + (u ? '<span class="dot">● ' + u + '</span>' : '') + '</small></div>'; }).join('');
+  setHtml($c('chconv'), (state.chats || []).filter((x) => x.msgs.length).map((x) => { const u = unread(x);
+    return '<div class="row" data-as="' + x.as + '" data-mode="' + x.mode + '" data-k="' + esc(x.with) + '"><span>' + esc(lab(x.mode, x.with)) + ' <small>(' + t('asLbl') + ' ' + esc(myLab(x.as)) + ')</small></span><small>' + x.msgs.length + ' ' + t('msg') + ' ' + (u ? '<span class="dot">● ' + u + '</span>' : '') + '</small></div>'; }).join(''));
   const keys = ch.mode === 'name' ? state.chatNames : state.chatRoles;
-  $c('chrows').innerHTML = keys.map((k) => { const x = threadOf(ch.as, ch.mode, k), u = unread(x);
-    return '<div class="row" data-k="' + esc(k) + '"><span>' + esc(lab(ch.mode, k)) + '</span><small>' + (x ? x.msgs.length + ' ' + t('msg') : t('fresh')) + ' ' + (u ? '<span class="dot">● ' + u + '</span>' : '') + '</small></div>'; }).join('');
+  setHtml($c('chrows'), keys.map((k) => { const x = threadOf(ch.as, ch.mode, k), u = unread(x);
+    return '<div class="row" data-k="' + esc(k) + '"><span>' + esc(lab(ch.mode, k)) + '</span><small>' + (x ? x.msgs.length + ' ' + t('msg') : t('fresh')) + ' ' + (u ? '<span class="dot">● ' + u + '</span>' : '') + '</small></div>'; }).join(''));
 }
 function renderThreadWin(w) {
   const d = w.d, x = threadOf(d.as, d.mode, d.key), u = unread(x), q = (s) => w.body.querySelector(s);
   w.title.textContent = t('to') + ' ' + lab(d.mode, d.key).toUpperCase() + ' (' + t('asLbl') + ' ' + myLab(d.as).toUpperCase() + ')' + (u ? ' ● ' + u : '');
   q('input').placeholder = t('placeholder'); q('.wsend').textContent = t('sendBtn');
   const box = q('.cmsgs'), atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
-  box.innerHTML = x ? x.msgs.map((m) => '<div class="m ' + (m.mine ? 'me' : '') + '"><i>' + (m.mine ? t('youLbl') : esc(lab(m.lm, m.label))) + '</i>' + esc(m.text) + '</div>').join('') : '<div class="sub">' + t(state.chatsLeft > 0 ? 'empty' : 'noLeft') + '</div>';
+  const nbox = x ? x.msgs.map((m) => '<div class="m ' + (m.mine ? 'me' : '') + '"><i>' + (m.mine ? t('youLbl') : esc(lab(m.lm, m.label))) + '</i>' + esc(m.text) + '</div>').join('') : '<div class="sub">' + t(state.chatsLeft > 0 ? 'empty' : 'noLeft') + '</div>';
+  setHtml(box, nbox);
   if (atEnd) box.scrollTop = box.scrollHeight;
   const k = q('.wkill'); k.style.display = x && x.canKill ? '' : 'none';
   if (x) { k.textContent = x.killMine ? t('destroyWait') : x.killOther ? t('destroyAsk') : t('destroy'); k.classList.toggle('on', x.killMine || x.killOther); k.onclick = () => send({ type: 'destroy', id: x.id }); }
   // Intelligence: hand a finding to Mass Media from an open chat with them (the server ignores it for anyone else)
   const lk = q('.wleak'), lb = q('.wleakbox'), isI = state.card.role === 'Intelligence' && x && x.msgs.length;
   lk.style.display = isI ? '' : 'none'; lk.textContent = t('leakFile');
-  lb.innerHTML = isI && w.leakOpen ? (state.leakUsed ? '<div class="sub">' + t('leakUsed') + '</div>' : !(state.findings || []).length ? '<div class="sub">' + t('leakNone') + '</div>'
+  const nlb = isI && w.leakOpen ? (state.leakUsed ? '<div class="sub">' + t('leakUsed') + '</div>' : !(state.findings || []).length ? '<div class="sub">' + t('leakNone') + '</div>'
     : '<div class="lbl">' + t('leakPick') + '</div>' + state.findings.map((f) => '<button class="tapopt leakpick" data-id="' + f.id + '">' + esc(lab(f.am, f.a)) + ' &harr; ' + esc(lab(f.bm, f.b)) + ' (' + f.count + ')</button>').join('')) : '';
+  setHtml(lb, nlb);
   lk.onclick = () => { w.leakOpen = !w.leakOpen; renderChat(); };
   lb.querySelectorAll('.leakpick').forEach((b) => { b.onclick = () => { w.leakOpen = false; send({ type: 'leakfile', chat: x.id, finding: +b.dataset.id }); }; });
 }
@@ -515,7 +518,7 @@ function renderChat() {
   $c('chbadge').hidden = !total; $c('chbadge').textContent = total;
   $c('chbtnl').textContent = t('chat'); $c('cardbtn').textContent = t('card');
   $c('chbtn').classList.toggle('on', !!wins.hub); $c('cardbtn').classList.toggle('on', !!wins.card);
-  if (wins.card) { wins.card.title.textContent = t('card'); wins.card.body.innerHTML = cardHtml(state.card, state.partnerCount); }
+  if (wins.card) { wins.card.title.textContent = t('card'); setHtml(wins.card.body, cardHtml(state.card, state.partnerCount)); }
   renderHub();
   Object.values(wins).forEach((w) => { if (w.d) renderThreadWin(w); });
 }
