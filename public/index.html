@@ -186,8 +186,8 @@ const t = (k, ...a) => { const v = TX[lang][k]; return typeof v === 'function' ?
 const rn = (r) => TX[lang].roles[r] || r;
 const lab = (mode, x) => (mode === 'role' ? rn(x) : x); // role ids come from the server in English
 
-// background music: put the track at public/music.m4a; starts on the first click (browsers block autoplay)
-const music = new Audio('/music.m4a');
+// background music: original loop made by tools/make-soundtrack.js (public/soundtrack.wav); starts on the first click (browsers block autoplay)
+const music = new Audio('/soundtrack.wav');
 music.loop = true;
 const vol = document.createElement('input');
 vol.type = 'range'; vol.min = 0; vol.max = 100; vol.value = localStorage.getItem('am_vol') ?? 5;
